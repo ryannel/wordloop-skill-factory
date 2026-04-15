@@ -125,3 +125,4 @@ When reviewing or writing wordloop-app code, actively flag these violations:
 | **Missing barrel export** | Domain folder without an `index.ts` re-exporting public components |
 | **Monolith component** | Component exceeding 150 lines without decomposition |
 | **Tailwind v3 config** | Creating `tailwind.config.ts` or using `@apply` with v3 syntax |
+test
