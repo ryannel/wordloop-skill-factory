@@ -1,0 +1,8 @@
+
+---
+
+## See Also
+
+- `validation-layers.md — Where contract tests sit in the Validation Grid
+- `test-data-management.md — State handlers as factory fixtures
+- `pipeline-architecture.md — CDCT verification in the Merge pipeline

@@ -1,0 +1,8 @@
+
+---
+
+## See Also
+
+- `emulation-strategy.md — Toxiproxy and container lifecycle patterns
+- `validation-layers.md — Risk score to test type mapping
+- `pipeline-architecture.md — Chaos experiments in the Nightly pipeline
