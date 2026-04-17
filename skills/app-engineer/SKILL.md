@@ -26,6 +26,7 @@ These are non-negotiable constraints that apply to every change:
 - **Decomposition:** Any component exceeding ~150 lines must be broken into smaller, composable units.
 - **Types:** The `any` type is forbidden. Use `unknown` and narrow with type guards.
 - **Colours:** All colours are defined in **OKLCH**. Hexadecimal, RGB, and HSL are strictly forbidden.
+- **Documentation:** Types and Zod `.describe()` are the primary documentation layer — not comments. TSDoc only when types genuinely can't convey intent (caching semantics, `"use client"` rationale, optimistic update behavior). Skip obvious components, thin pages, and self-documenting props. Load `references/documentation.md` for the full hierarchy.
 - **Tailwind:** Use Tailwind v4 CSS-first syntax only. No `tailwind.config.ts`, no v3 syntax.
 
 ## Architectural Layers
@@ -74,6 +75,7 @@ Load detailed implementation guidance based on the task at hand:
 | Tailwind & Theming | `references/tailwind-and-styling.md` | Tailwind v4 CSS-first config, @theme, @custom-variant, animations |
 | UX Principles | `references/ux-principles.md` | Speed, navigation, info architecture, feedback, accessibility, empty states, copy |
 | Testing | `references/testing.md` | Vitest + RTL, MSW, hook isolation, theme coverage, accessibility |
+| Documentation | `references/documentation.md` | The documentation trust hierarchy (types → Zod `.describe()` → naming → TSDoc). When comments are harmful vs. justified. Types-as-documentation, hook caching notes, `"use client"` rationale, in-code markers, service README. |
 | Performance & Deployment | `references/performance-and-deployment.md` | Images, fonts, bundling, scripts, metadata, self-hosting, Docker, debug |
 
 ## Constraints

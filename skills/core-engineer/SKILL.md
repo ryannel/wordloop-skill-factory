@@ -36,11 +36,13 @@ Load detailed guidance according to the architectural domain you are analyzing. 
 | Observability & eBPF | `references/observability-and-ebpf.md` | Setting up logging schemas, routing context blocks into `otelslog`, OBI eBPF network capturing, or removing the "Log and Return" antipattern. |
 | Resiliency & Lifecycles | `references/resiliency-and-lifecycle.md` | Implementing `errgroup` concurrency, `gobreaker` circuit breakers, exponential backoff, or Kubernetes graceful shutdowns (trapping SIGTERM, managing readiness). |
 | Quality Assurance (Testing) | `references/testing-and-quality.md` | Setting up validation boundaries. Using Testcontainers vs external mocks natively. Establishing native coverage-guided Fuzzing routines under `go fix`. |
+| Documentation | `references/documentation.md` | The documentation trust hierarchy (types → naming → GoDoc contracts). When comments are harmful vs. justified. One-sentence GoDoc conventions, concurrency safety notes, deprecation markers, in-code markers, service README. |
 
 ## Constraints
 
 ### MUST DO
 - **Honor Dependency Direction:** Entrypoints and Providers depend inward on Services. Services depend inward on Gateways and Domains. Domains have zero knowledge of anything outside themselves (but may use external libraries).
+- **Document Contracts, Not Code:** One-sentence GoDoc on exported identifiers for pkgsite/gopls tooling. Skip obvious getters. Never document implementation details — if code needs a comment to explain *what* it does, refactor the code. Load `references/documentation.md` for the full hierarchy.
 - **Enforce Traceparent Context:** Ensure the `context.Context` is uniformly passed as the first parameter to every layer function call, ensuring `slog.InfoContext` triggers trace extraction safely.
 - **Isolate Migrations:** All DB definitions must execute safely out of strict `scripts/migrations/` SQL files using safe `IF NOT EXISTS` standards.
 - **Fail Gracefully:** Trap termination logic and handle the shutdown process asynchronously. Ensure your active processes are completely drained before database disconnect execution occurs.
