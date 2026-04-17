@@ -1,8 +1,0 @@
-
----
-
-## See Also
-
-- `validation-layers.md — When to use emulated vs live dependencies
-- `test-data-management.md — Container reset strategies and fixture patterns
-- `trace-validation.md — Configuring OTel collectors within emulated environments

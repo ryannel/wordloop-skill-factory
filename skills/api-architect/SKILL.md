@@ -32,10 +32,17 @@ Load detailed guidance according to the architectural domain you are analyzing:
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
 | System Topologies | `references/api-topologies.md` | Discussing API Gateways, Edge vs Service Mesh, Multi-tier caching arrays, or Kubernetes Gateway API. |
-| REST & Resources | `references/resource-design-and-rest.md` | Designing URIs, picking HTTP semantic verbs, executing Cursor-based Keyset pagination, or structuring JSON representations. |
-| Async Patterns | `references/async-and-event-patterns.md` | Decoupling limits with `202 Accepted`, setting up AsyncAPI 3.0, Kafka topic partitioning, or Transactional Outboxes. |
-| Security & Governance | `references/security-and-governance.md` | Setting up Zero Trust (OAuth 2.1 PKCE + mTLS), structured error responses (RFC 9457), or standardizing IETF Rate Limits. |
-| Lifecycle & AI | `references/lifecycle-and-ai.md` | Transitioning to Date-Based versioning, issuing RFC 8594 Sunset/Deprecation headers, or generating the `llms.txt` specification. |
+| REST & Resources | `references/resource-design.md` | Designing URIs, enforcing The Two-Level Rule, and structuring JSON representations. |
+| HTTP Semantics | `references/http-semantics.md` | Proper method semantics, idempotency keys, standardized status codes, and caching. |
+| Advanced REST | `references/advanced-patterns.md` | Resource expansion, bulk/batch operations, file uploads, and specific operational endpoints. |
+| Pagination | `references/pagination-filtering.md` | Executing cursor-based keyset pagination and standardized query parameter usage. |
+| Security | `references/security.md` | Setting up Zero Trust (OAuth 2.1 PKCE + mTLS), fine-grained authorization, and IETF rate limits. |
+| Error Handling | `references/error-handling.md` | Structuring error responses strictly using the RFC 9457 Problem Details standard. |
+| Async Patterns | `references/async-and-event-patterns.md` | Decoupling limits with `202 Accepted`, Kafka partitioning, or Transactional Outboxes. |
+| Webhooks | `references/webhooks.md` | Designing robust outbox-delivery webhooks with HMAC-SHA256 and at-least-once retries. |
+| OpenAPI Spec | `references/openapi-spec.md` | Writing robust OpenAPI 3.1 definitions, utilizing JSON Schema alignment, and code generation. |
+| Versioning | `references/versioning-lifecycle.md` | Leveraging Date-Based versioning, handling migrations, and configuring Sunset/Deprecation headers. |
+| AI Readiness | `references/ai-agent-readiness.md` | Preparing APIs for autonomous AI agents, semantic operation naming, and `llms.txt` integration. |
 
 ## Constraints
 

@@ -1,8 +1,0 @@
-
----
-
-## See Also
-
-- `emulation-strategy.md — Container lifecycle ties to reset strategies
-- `validation-layers.md — Seeding approach per test type
-- `worked-examples.md — Factory patterns in context

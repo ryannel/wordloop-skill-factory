@@ -1,8 +1,0 @@
-
----
-
-## See Also
-
-- `validation-layers.md — Access control testing by test type
-- `pipeline-architecture.md — Security gates in the PR pipeline
-- `shift-right-testing.md — Production security monitoring

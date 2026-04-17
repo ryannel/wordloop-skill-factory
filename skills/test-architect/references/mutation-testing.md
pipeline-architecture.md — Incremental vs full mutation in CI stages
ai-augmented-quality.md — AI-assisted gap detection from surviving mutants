@@ -1,8 +1,0 @@
-
----
-
-## See Also
-
-- `risk-and-chaos.md — Risk Matrix determines where to focus mutation testing
-- `pipeline-architecture.md — Incremental vs full mutation in CI stages
-- `ai-augmented-quality.md — AI-assisted gap detection from surviving mutants

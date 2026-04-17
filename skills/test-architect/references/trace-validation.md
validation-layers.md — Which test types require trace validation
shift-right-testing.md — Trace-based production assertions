@@ -1,8 +1,0 @@
-
----
-
-## See Also
-
-- `emulation-strategy.md — Configuring OTel Collector containers
-- `validation-layers.md — Which test types require trace validation
-- `shift-right-testing.md — Trace-based production assertions
