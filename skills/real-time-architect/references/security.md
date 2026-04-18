@@ -163,58 +163,7 @@ io.on('connection', (socket) => {
 
 ## Rate Limiting
 
-### Per-Socket Rate Limiting
-
-```javascript
-const rateLimit = require('express-rate-limit');
-
-class SocketRateLimiter {
-  constructor(maxRequests = 100, windowMs = 60000) {
-    this.maxRequests = maxRequests;
-    this.windowMs = windowMs;
-    this.requests = new Map();
-  }
-
-  check(socketId) {
-    const now = Date.now();
-    const userRequests = this.requests.get(socketId) || [];
-
-    // Remove expired requests
-    const validRequests = userRequests.filter(
-      time => now - time < this.windowMs
-    );
-
-    if (validRequests.length >= this.maxRequests) {
-      return false; // Rate limit exceeded
-    }
-
-    validRequests.push(now);
-    this.requests.set(socketId, validRequests);
-    return true;
-  }
-
-  reset(socketId) {
-    this.requests.delete(socketId);
-  }
-}
-
-const limiter = new SocketRateLimiter(100, 60000); // 100 req/min
-
-io.on('connection', (socket) => {
-  socket.on('message', (data) => {
-    if (!limiter.check(socket.id)) {
-      socket.emit('error', { message: 'Rate limit exceeded' });
-      return;
-    }
-
-    // Process message
-    io.to(data.roomId).emit('message', data);
-  });
-
-  socket.on('disconnect', () => {
-    limiter.reset(socket.id);
-  });
-});
+For comprehensive rate limiting patterns including the GCRA algorithm, distributed Redis-based limiting, and thundering herd mitigation, see `resiliency.md`.
 ```
 
 ### Redis-Based Distributed Rate Limiting

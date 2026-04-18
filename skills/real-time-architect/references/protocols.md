@@ -483,3 +483,22 @@ if (cluster.isPrimary) {
   import("./socket-server.js");
 }
 ```
+```
+
+---
+
+## MCP Streamable HTTP
+
+When architecting for autonomous AI agents calling tools or consuming output, adopt **Streamable HTTP** (formerly the MCP SSE+HTTP pattern). Instead of a dual-channel setup (one REST endpoint for issuing commands and a separate SSE endpoint for listening), standard HTTP endpoints dynamically establish an SSE stream within a single POST/GET request when real-time tool state or context streaming is required.
+
+For full MCP architecture, resource/tool design, and agent security, see `mcp.md`.
+
+---
+
+## Cross-References
+
+- **Client-side reconnection & offline queues** → `client.md`
+- **Resiliency, rate limiting, thundering herd** → `resiliency.md`
+- **MCP architecture & agent security** → `mcp.md`
+- **Serialization formats & compression** → `serialization.md`
+- **gRPC & GraphQL streaming** → `grpc-graphql.md`

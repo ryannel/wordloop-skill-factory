@@ -367,34 +367,4 @@ io.on('connection', (socket) => {
 
 ## Backpressure Handling
 
-```javascript
-io.on('connection', (socket) => {
-  const MAX_BUFFER_SIZE = 10000;
-  let bufferSize = 0;
-
-  const originalEmit = socket.emit.bind(socket);
-
-  socket.emit = function(event, ...args) {
-    bufferSize++;
-
-    if (bufferSize > MAX_BUFFER_SIZE) {
-      console.warn('Buffer overflow, dropping message');
-      return false;
-    }
-
-    const result = originalEmit(event, ...args);
-
-    // Track buffer drain
-    socket.once('drain', () => {
-      bufferSize = 0;
-    });
-
-    return result;
-  };
-
-  // Monitor buffer size
-  socket.on('drain', () => {
-    console.log('Socket buffer drained');
-  });
-});
-```
+For comprehensive backpressure patterns (WebTransport native flow control, WebSocketStream pull model, legacy `bufferedAmount` monitoring, and Socket.IO server-side backpressure), see `resiliency.md`.

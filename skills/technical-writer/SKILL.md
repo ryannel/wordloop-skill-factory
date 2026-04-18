@@ -39,6 +39,7 @@ Match the user's need to the appropriate reference. Most documentation tasks tou
 
 | Topic | Reference | Load When |
 |-------|-----------|-----------| 
+| Feature Design Studio | `references/feature-design-studio.md` | Authoring or reviewing any Feature Design Studio document (specification, discovery, design, implementation, validation). Covers document conventions, positive design framing, open questions lifecycle, rejected alternatives format, and per-phase delivery rules. |
 | AI-Native Documentation | `references/ai-native-documentation.md` | Implementing `llms.txt` indexes, configuring MCP documentation servers, designing machine-readable metadata, or optimizing documentation for AI agent consumption. |
 | Diagrams-as-Code | `references/diagrams-as-code.md` | Creating or reviewing system diagrams with Mermaid.js or D2, applying the C4 Model hierarchy, configuring diagram drift detection, or establishing diagram version-control workflows. |
 | API Documentation Ecosystems | `references/api-documentation-ecosystems.md` | Writing OpenAPI or AsyncAPI specifications, building live API playgrounds, configuring automated SDK generation pipelines, or optimizing time-to-first-call. |

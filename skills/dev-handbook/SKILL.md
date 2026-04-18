@@ -1,11 +1,11 @@
 ---
 name: dev-handbook
-description: The definitive orientation guide for working inside the wordloop-platform monorepo. Covers the bespoke `./dev` CLI (lifecycle, testing, generation, database), Git submodule topology, the `/specs` contract directory, Terraform infrastructure (Empty Shell pattern), GitHub Actions CI/CD, system tests with mock servers, and the skill-factory sync workflow. Make sure to use this skill whenever a user asks how to start services, run tests, generate API clients, understand the database schema, deploy to GCP, add a new CLI command, debug CI failures, find where something lives in the repo, or generally orient themselves in the codebase — even if they don't explicitly say "repo" or "platform." Also invoke when the user mentions `./dev`, docker-compose, terraform, system tests, smoke tests, submodules, specs folder, or code generation pipelines.
+description: The definitive orientation guide for working inside the wordloop-platform monorepo. Covers the bespoke `./dev` CLI (lifecycle, testing, generation, database, authoring), Git submodule topology, the `/specs` contract directory, the Feature Design Studio workflow, Terraform infrastructure (Empty Shell pattern), GitHub Actions CI/CD, system tests with mock servers, and the skill-factory sync workflow. Make sure to use this skill whenever a user asks how to start services, run tests, generate API clients, understand the database schema, deploy to GCP, add a new CLI command, debug CI failures, scaffold a new feature, find where something lives in the repo, or generally orient themselves in the codebase — even if they don't explicitly say "repo" or "platform." Also invoke when the user mentions `./dev`, docker-compose, terraform, system tests, smoke tests, submodules, specs folder, code generation pipelines, feature design, or `./dev new feature`.
 license: MIT
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
   domain: repository-management
-  triggers: repo setup, developer cli, ./dev, dev script, codebase architecture, git submodules, wordloop-platform, CI/CD, github actions, infrastructure test, dev-handbook, specs, code generation, terraform, system tests, smoke tests, docker compose, skill sync
+  triggers: repo setup, developer cli, ./dev, dev script, codebase architecture, git submodules, wordloop-platform, CI/CD, github actions, infrastructure test, dev-handbook, specs, code generation, terraform, system tests, smoke tests, docker compose, skill sync, feature design, feature studio, ./dev new, ./dev archive
   role: navigator
   scope: orientation
 ---
@@ -82,6 +82,8 @@ The reason `./dev` exists (rather than raw `docker compose` or `make`) is that i
 | | `./dev db shell` | Interactive `psql` console |
 | | `./dev db prod-proxy start` | Opens a Cloud SQL Auth Proxy tunnel to the live production database on `:5433` |
 | **Generation** | `./dev gen all` | Runs the full generation pipeline (see Code Generation below) |
+| **Authoring** | `./dev new feature <slug>` | Scaffolds a new feature in the Design Studio (see Feature Design Studio below) |
+| | `./dev archive feature <slug>` | Archives a delivered feature (hides from sidebar, preserves history) |
 | **Utilities** | `./dev sync skills` | Diffs `tools/skill-factory/skills` against `.agents/skills` and syncs changes |
 | | `./dev dash obs` | Opens the .NET Aspire Dashboard (OTel traces, metrics, logs) |
 | | `./dev dash docs` | Opens the Fumadocs site |
@@ -114,6 +116,52 @@ The platform uses a contract-first workflow: schemas are the source of truth, an
 | `clients` | `./dev gen clients` | Hydrates API clients — App (TS via Orval), Core (Go), ML (Python) — from `/specs`. Depends on `api`. |
 | `docs` | `./dev gen docs` | Regenerates Fumadocs OpenAPI reference pages from `/specs`. Depends on `api`. |
 | `all` | `./dev gen all` | Runs `api` → `events` → `clients` → `docs` in sequence. |
+
+## Feature Design Studio
+
+The Feature Design Studio is a structured section in the docsite (`/docs/features`) where features are designed, architected, and tracked through delivery. Each feature follows a 5-phase lifecycle with clear handoff points between human and agent work.
+
+### The Lifecycle
+
+| Phase | Who | What Happens |
+|-------|-----|-------------|
+| **1. Specify** | Human | Define the problem, success criteria, scope, and user stories |
+| **2. Discover** | Agents | Explore core/ml/app/infra codebases and surface relevant context |
+| **3. Design** | Human + Agent | Architect the solution — data flows, APIs, schemas, diagrams |
+| **4. Implement** | Agents | Break into phases, delegate to service-specific agents, execute |
+| **5. Validate** | Human + Agent | Code review each phase, run tests, verify acceptance criteria |
+
+### Content Structure
+
+Features live in `services/wordloop-docs/content/docs/features/`. Each feature is a directory with five pages:
+
+| File | Purpose |
+|------|---------|
+| `specification.mdx` | What we're building and why — problem, scope, user stories |
+| `discovery.mdx` | Agent-populated findings from each service's codebase |
+| `design.mdx` | Architecture, API design, data schemas, Mermaid diagrams |
+| `implementation.mdx` | Phased delivery plan with agent delegation per phase |
+| `validation.mdx` | Test cases, review checklist, documentation update tracking |
+
+Special directories:
+- **`_template/`** — Copyable template (hidden from sidebar by underscore prefix). `./dev new feature` copies this.
+- **`_archive/`** — Delivered features are moved here (hidden from sidebar, still accessible by URL).
+
+### Scaffolding a Feature
+
+```bash
+./dev new feature <slug>
+```
+
+This copies the template to `features/<slug>/`, sets the title from the slug (kebab-case → Title Case), and adds the feature to the sidebar navigation. The slug must be lowercase kebab-case (e.g. `real-time-insights`).
+
+### Archiving a Delivered Feature
+
+```bash
+./dev archive feature <slug>
+```
+
+Moves the feature directory to `_archive/` and removes it from the sidebar. The full design history is preserved and remains accessible by URL. After archiving, update the platform documentation (architecture, data-flow, schemas) to reflect the delivered feature.
 
 ## System & Smoke Tests
 

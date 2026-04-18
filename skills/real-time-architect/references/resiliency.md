@@ -610,3 +610,112 @@ Every connection must clean up on disconnect:
 4. **Rate limit state** — Free rate limiter entries
 5. **Backplane subscriptions** — Unsubscribe from per-user channels
 6. **Circuit breaker metrics** — Decrement active connection counts
+
+---
+
+## Horizontal Scaling
+
+### Redis Adapter for Socket.IO
+
+Cross-pod message routing requires a shared backplane. The Redis adapter ensures broadcasts reach clients regardless of which pod they are connected to:
+
+```javascript
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
+
+const httpServer = createServer();
+const io = new Server(httpServer, {
+  cors: { origin: process.env.ALLOWED_ORIGIN },
+});
+
+const pubClient = createClient({ url: process.env.REDIS_URL });
+const subClient = pubClient.duplicate();
+
+await Promise.all([pubClient.connect(), subClient.connect()]);
+io.adapter(createAdapter(pubClient, subClient));
+
+httpServer.listen(3000);
+```
+
+For reliable delivery with reconnection replay, use Redis Streams instead of Pub/Sub:
+
+```javascript
+import { createAdapter } from "@socket.io/redis-streams-adapter";
+
+const redisClient = createClient({ url: process.env.REDIS_URL });
+await redisClient.connect();
+
+io.adapter(createAdapter(redisClient, {
+  streamName: "socket.io-stream",
+  maxLen: 10000,   // Keep last 10k messages for replay
+  readCount: 100,  // Process 100 messages at a time
+}));
+```
+
+### Sticky Sessions
+
+Socket.IO's Engine.IO handshake requires that the initial HTTP polling request and the subsequent WebSocket upgrade both reach the same pod. Configure your load balancer for session affinity:
+
+```nginx
+upstream websocket_backend {
+    ip_hash;  # Sticky sessions based on IP
+    server ws1.example.com:3000;
+    server ws2.example.com:3000;
+}
+
+server {
+    location /socket.io/ {
+        proxy_pass http://websocket_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_connect_timeout 7d;
+        proxy_send_timeout 7d;
+        proxy_read_timeout 7d;
+    }
+}
+```
+
+### Kubernetes Horizontal Pod Autoscaling
+
+Standard CPU-based HPA metrics are insufficient for WebSocket servers — a pod at 30% CPU may be at 95% connection capacity. Use custom connection metrics:
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: websocket-server-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: websocket-server
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Pods
+    pods:
+      metric:
+        name: websocket_connections
+      target:
+        type: AverageValue
+        averageValue: "40000"  # Scale when avg > 40k connections/pod
+```
+
+---
+
+## Cross-References
+
+- **Protocol selection & transport details** → `protocols.md`
+- **Client-side reconnection & offline queues** → `client.md`
+- **Observability & alerting** → `observability.md`
+- **Contract testing & CI/CD validation** → `testing.md`

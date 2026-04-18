@@ -16,6 +16,11 @@
       "sourceType": "github",
       "computedHash": "db85045827ebeb83ac8dbc992b69188755eeb74dcf01cbf5e694d58aa494a106"
     },
+    "postgresql-table-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "dcace78e5cef7d8dce8ffef7ebee146e6c83a438aa4cf80bf502730e870c02d4"
+    },
     "python-pro": {
       "source": "jeffallan/claude-skills",
       "sourceType": "github",
