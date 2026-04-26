@@ -82,8 +82,13 @@ The reason `./dev` exists (rather than raw `docker compose` or `make`) is that i
 | | `./dev db shell` | Interactive `psql` console |
 | | `./dev db prod-proxy start` | Opens a Cloud SQL Auth Proxy tunnel to the live production database on `:5433` |
 | **Generation** | `./dev gen all` | Runs the full generation pipeline (see Code Generation below) |
-| **Authoring** | `./dev new feature <slug>` | Scaffolds a new feature in the Design Studio (see Feature Design Studio below) |
-| | `./dev archive feature <slug>` | Archives a delivered feature (hides from sidebar, preserves history) |
+| **Authoring** | `./dev new bet <slug>` | Scaffolds a new bet (docs + test suite) — see Bet Design Studio below |
+| | `./dev new milestone <bet-slug> <milestone>` | Scaffolds integration milestone documentation and automated test stubs |
+| | `./dev new slice <bet-slug> <milestone> <domain> <slice>` | Scaffolds a specific domain slice and testing boundaries |
+| | `./dev new contract <bet-slug> <service> <protocol>` | Scaffolds a new API contract layout |
+| | `./dev new schema <bet-slug> <service> <tech>` | Scaffolds a new database schema planning doc |
+| | `./dev archive bet <slug>` | Archives a delivered bet (docs + tests, hides from sidebar, preserves history) |
+| | `./dev test bet <slug>` | Runs the bet progress test suite on demand |
 | **Utilities** | `./dev sync skills` | Diffs `tools/skill-factory/skills` against `.agents/skills` and syncs changes |
 | | `./dev dash obs` | Opens the .NET Aspire Dashboard (OTel traces, metrics, logs) |
 | | `./dev dash docs` | Opens the Fumadocs site |
@@ -117,51 +122,83 @@ The platform uses a contract-first workflow: schemas are the source of truth, an
 | `docs` | `./dev gen docs` | Regenerates Fumadocs OpenAPI reference pages from `/specs`. Depends on `api`. |
 | `all` | `./dev gen all` | Runs `api` → `events` → `clients` → `docs` in sequence. |
 
-## Feature Design Studio
+## Bet Design Studio
 
-The Feature Design Studio is a structured section in the docsite (`/docs/features`) where features are designed, architected, and tracked through delivery. Each feature follows a 5-phase lifecycle with clear handoff points between human and agent work.
+The Bet Design Studio is a structured section in the docsite (`/docs/bets`) where bets are designed, architected, and tracked through delivery. Each bet follows a 4-phase lifecycle.
 
 ### The Lifecycle
 
-| Phase | Who | What Happens |
-|-------|-----|-------------|
-| **1. Specify** | Human | Define the problem, success criteria, scope, and user stories |
-| **2. Discover** | Agents | Explore core/ml/app/infra codebases and surface relevant context |
-| **3. Design** | Human + Agent | Architect the solution — data flows, APIs, schemas, diagrams |
-| **4. Implement** | Agents | Break into phases, delegate to service-specific agents, execute |
-| **5. Validate** | Human + Agent | Code review each phase, run tests, verify acceptance criteria |
+| Phase | What Happens |
+|-------|-------------|
+| **1. Problem Statement** | Observed pain, evidence, appetite judgment |
+| **2. Pitch** | Rough solution sketch, rabbit holes, no-gos |
+| **3. TDD** (directory) | User flow, data flow, domain slices, milestones, contracts |
+| **4. Execution** | Living build record per service — populated during the build |
 
 ### Content Structure
 
-Features live in `services/wordloop-docs/content/docs/features/`. Each feature is a directory with five pages:
+Bets live in `services/wordloop-docs/content/docs/bets/`. Each bet is a directory:
 
-| File | Purpose |
-|------|---------|
-| `specification.mdx` | What we're building and why — problem, scope, user stories |
-| `discovery.mdx` | Agent-populated findings from each service's codebase |
-| `design.mdx` | Architecture, API design, data schemas, Mermaid diagrams |
-| `implementation.mdx` | Phased delivery plan with agent delegation per phase |
-| `validation.mdx` | Test cases, review checklist, documentation update tracking |
-
-Special directories:
-- **`_template/`** — Copyable template (hidden from sidebar by underscore prefix). `./dev new feature` copies this.
-- **`_archive/`** — Delivered features are moved here (hidden from sidebar, still accessible by URL).
-
-### Scaffolding a Feature
-
-```bash
-./dev new feature <slug>
+```
+bets/<slug>/
+├── 01-problem-statement.mdx
+├── 02-pitch.mdx
+├── 03-tdd/                    ← Directory with sub-pages
+│   ├── index.mdx              ← Overview, success criteria, constraints
+│   ├── user-flow.mdx          ← End-to-end user journey
+│   ├── data-flow.mdx          ← Service-level data flow diagram
+│   ├── domain-slices.mdx      ← Testable domain slices with test cases
+│   ├── milestones.mdx         ← Integration milestones with test cases
+│   └── contracts.mdx          ← API contracts per boundary
+├── 04-execution.mdx
+└── meta.json
 ```
 
-This copies the template to `features/<slug>/`, sets the title from the slug (kebab-case → Title Case), and adds the feature to the sidebar navigation. The slug must be lowercase kebab-case (e.g. `real-time-insights`).
+### Test-Driven Delivery
 
-### Archiving a Delivered Feature
+Every domain slice and milestone in the TDD must define test cases. Tests serve dual purpose:
+1. **Service/system tests** (permanent) — in the service repo or `tests/system/`
+2. **Bet progress suite** (temporary) — in `tests/bets/<slug>/`, run on demand
+
+The bet progress suite starts all-red, goes green as slices ship, and is archived with the bet.
+
+### Scaffolding a Bet
 
 ```bash
-./dev archive feature <slug>
+./dev new bet <slug>
 ```
 
-Moves the feature directory to `_archive/` and removes it from the sidebar. The full design history is preserved and remains accessible by URL. After archiving, update the platform documentation (architecture, data-flow, schemas) to reflect the delivered feature.
+Scaffolds `bets/<slug>/` with the 4-phase structure (including TDD directory) and `tests/bets/<slug>/` with the bet progress test suite. The slug must be lowercase kebab-case (e.g. `speaker-navigation`).
+
+### Scaffolding Architecture (TDD)
+
+You should progressively generate architecture components using the Golden Path CLI. This ensures test stubs and documentation stay synchronized.
+
+```bash
+# Scaffolds milestones and domains
+./dev new milestone <bet-slug> <milestone-slug>
+./dev new slice <bet-slug> <milestone-slug> <domain> <slice-slug>
+
+# Scaffolds architectural boundaries
+./dev new contract <bet-slug> <service> <protocol>
+./dev new schema <bet-slug> <service> <database-tech>
+```
+
+### Running Bet Progress Tests
+
+```bash
+./dev test bet <slug>
+```
+
+Runs the bet progress suite on demand to check delivery progress.
+
+### Archiving a Delivered Bet
+
+```bash
+./dev archive bet <slug>
+```
+
+Moves the bet directory to `_archive/` and the test suite to `tests/bets/_archive/<slug>/`. The full design history is preserved and remains accessible by URL.
 
 ## System & Smoke Tests
 
