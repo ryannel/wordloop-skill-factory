@@ -145,7 +145,7 @@ bets/<slug>/
 ├── 02-pitch.mdx
 ├── 03-tdd/                    ← Directory with sub-pages
 │   ├── index.mdx              ← Overview, success criteria, constraints
-│   ├── user-flow.mdx          ← End-to-end user journey
+│   ├── ui-design.mdx             ← Screen walkthrough with states and interactions
 │   ├── data-flow.mdx          ← Service-level data flow diagram
 │   ├── domain-slices.mdx      ← Testable domain slices with test cases
 │   ├── milestones.mdx         ← Integration milestones with test cases
