@@ -124,35 +124,40 @@ The platform uses a contract-first workflow: schemas are the source of truth, an
 
 ## Bet Design Studio
 
-The Bet Design Studio is a structured section in the docsite (`/docs/bets`) where bets are designed, architected, and tracked through delivery. Each bet follows a 4-phase lifecycle.
+The Bet Design Studio is a structured section in the docsite (`/docs/work`) where bets are designed, architected, and tracked through delivery. Each bet follows a progressive lifecycle.
 
 ### The Lifecycle
 
-| Phase | What Happens |
-|-------|-------------|
-| **1. Problem Statement** | Observed pain, evidence, appetite judgment |
-| **2. Pitch** | Rough solution sketch, rabbit holes, no-gos |
-| **3. TDD** (directory) | User flow, data flow, domain slices, milestones, contracts |
-| **4. Execution** | Living build record per service — populated during the build |
+Bets move through discrete stages. At each promotion, the CLI moves the content forward and updates the sidebar.
+
+| Phase | What Happens | Where it lives |
+|-------|-------------|----------------|
+| **1. Problem Statement** | Observed pain, evidence, appetite judgment | `work/problem-statements/<slug>.mdx` |
+| **2. Pitch** | Rough solution sketch, rabbit holes, no-gos | `work/pitches/<slug>.mdx` |
+| **3. Active Bet** | Pitch promoted to a bet, TDD designed, execution begins | `work/<slug>/` |
+| **4. Delivered** | Archived with full history | `work/delivered/<slug>/` |
 
 ### Content Structure
 
-Bets live in `services/wordloop-docs/content/docs/bets/`. Each bet is a directory:
+Active bets live in `services/wordloop-docs/content/docs/work/<slug>/`. Each bet is a directory:
 
 ```
-bets/<slug>/
-├── 01-problem-statement.mdx
-├── 02-pitch.mdx
-├── 03-tdd/                    ← Directory with sub-pages
+work/<slug>/
+├── pitch.mdx                  ← Promoted pitch (carried from pitches/)
+├── tdd/                       ← Technical Design Doc (directory)
 │   ├── index.mdx              ← Overview, success criteria, constraints
-│   ├── ui-design.mdx             ← Screen walkthrough with states and interactions
+│   ├── ui-design.mdx          ← Screen walkthrough with states and interactions
 │   ├── data-flow.mdx          ← Service-level data flow diagram
 │   ├── domain-slices.mdx      ← Testable domain slices with test cases
-│   ├── milestones.mdx         ← Integration milestones with test cases
-│   └── contracts.mdx          ← API contracts per boundary
-├── 04-execution.mdx
+│   ├── milestones/            ← Integration milestones (scaffolded)
+│   ├── contracts/             ← API contracts per boundary (scaffolded)
+│   └── schemas/               ← Database schema plans (scaffolded)
 └── meta.json
 ```
+
+### Wireframe Images
+
+Wireframes for bets are stored in `public/images/bets/<slug>/`. Reference them as `![Alt text](/images/bets/<slug>/screen_name.png)`.
 
 ### Test-Driven Delivery
 
@@ -168,7 +173,7 @@ The bet progress suite starts all-red, goes green as slices ship, and is archive
 ./dev new bet <slug>
 ```
 
-Scaffolds `bets/<slug>/` with the 4-phase structure (including TDD directory) and `tests/bets/<slug>/` with the bet progress test suite. The slug must be lowercase kebab-case (e.g. `speaker-navigation`).
+Promotes a pitch from `work/pitches/<slug>.mdx` into an active bet at `work/<slug>/`. Also scaffolds `tests/bets/<slug>/` with the bet progress test suite. The slug must be lowercase kebab-case (e.g. `speaker-navigation`). A pitch must exist before a bet can be created.
 
 ### Scaffolding Architecture (TDD)
 
