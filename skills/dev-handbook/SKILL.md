@@ -1,11 +1,11 @@
 ---
 name: dev-handbook
-description: The definitive orientation guide for working inside the wordloop-platform monorepo. Covers the bespoke `./dev` CLI (lifecycle, testing, generation, database, authoring), Git submodule topology, the `/specs` contract directory, the Feature Design Studio workflow, Terraform infrastructure (Empty Shell pattern), GitHub Actions CI/CD, system tests with mock servers, and the skill-factory sync workflow. Make sure to use this skill whenever a user asks how to start services, run tests, generate API clients, understand the database schema, deploy to GCP, add a new CLI command, debug CI failures, scaffold a new feature, find where something lives in the repo, or generally orient themselves in the codebase — even if they don't explicitly say "repo" or "platform." Also invoke when the user mentions `./dev`, docker-compose, terraform, system tests, smoke tests, submodules, specs folder, code generation pipelines, feature design, or `./dev new feature`.
+description: The definitive orientation guide for working inside the wordloop-platform monorepo. Covers the bespoke `./dev` CLI (lifecycle, testing, generation, database, authoring), Git submodule topology, the `/specs` contract directory, the Bet Design Studio workflow (problem statements, pitches, active bets, TDD architecture), Terraform infrastructure (Empty Shell pattern), GitHub Actions CI/CD, system tests with mock servers, and the skill-factory sync workflow. Make sure to use this skill whenever a user asks how to start services, run tests, generate API clients, understand the database schema, deploy to GCP, add a new CLI command, debug CI failures, scaffold a new feature, find where something lives in the repo, or generally orient themselves in the codebase — even if they don't explicitly say "repo" or "platform." Also invoke when the user mentions `./dev`, docker-compose, terraform, system tests, smoke tests, submodules, specs folder, code generation pipelines, problem statements, pitches, bets, bet design, data flows, UI design, TDD, ways of working, `./dev new`, or `./dev archive`.
 license: MIT
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   domain: repository-management
-  triggers: repo setup, developer cli, ./dev, dev script, codebase architecture, git submodules, wordloop-platform, CI/CD, github actions, infrastructure test, dev-handbook, specs, code generation, terraform, system tests, smoke tests, docker compose, skill sync, feature design, feature studio, ./dev new, ./dev archive
+  triggers: repo setup, developer cli, ./dev, dev script, codebase architecture, git submodules, wordloop-platform, CI/CD, github actions, infrastructure test, dev-handbook, specs, code generation, terraform, system tests, smoke tests, docker compose, skill sync, problem statement, pitch, bet, bet design, data flow, ui design, tdd, ways of working, ./dev new, ./dev archive
   role: navigator
   scope: orientation
 ---
@@ -82,7 +82,9 @@ The reason `./dev` exists (rather than raw `docker compose` or `make`) is that i
 | | `./dev db shell` | Interactive `psql` console |
 | | `./dev db prod-proxy start` | Opens a Cloud SQL Auth Proxy tunnel to the live production database on `:5433` |
 | **Generation** | `./dev gen all` | Runs the full generation pipeline (see Code Generation below) |
-| **Authoring** | `./dev new bet <slug>` | Scaffolds a new bet (docs + test suite) — see Bet Design Studio below |
+| **Authoring** | `./dev new problem-statement <slug>` | Creates a problem statement at `work/problem-statements/<slug>.mdx` and registers in sidebar |
+| | `./dev new pitch <slug>` | Promotes a problem statement into a pitch at `work/pitches/<slug>.mdx` (carries problem content forward) |
+| | `./dev new bet <slug>` | Promotes a pitch into an active bet at `work/<slug>/` with TDD scaffolding and test suite |
 | | `./dev new milestone <bet-slug> <milestone>` | Scaffolds integration milestone documentation and automated test stubs |
 | | `./dev new slice <bet-slug> <milestone> <domain> <slice>` | Scaffolds a specific domain slice and testing boundaries |
 | | `./dev new contract <bet-slug> <service> <protocol>` | Scaffolds a new API contract layout |
@@ -124,22 +126,42 @@ The platform uses a contract-first workflow: schemas are the source of truth, an
 
 ## Bet Design Studio
 
-The Bet Design Studio is a structured section in the docsite (`/docs/work`) where bets are designed, architected, and tracked through delivery. Each bet follows a progressive lifecycle.
+The Bet Design Studio is a structured section in the docsite (`/docs/work`) where work is designed, architected, and tracked through delivery. All content lives in `services/wordloop-docs/content/docs/work/`. The full guidance lives in `work/index.mdx` — read that file for the authoritative "How We Work" reference.
 
 ### The Lifecycle
 
-Bets move through discrete stages. At each promotion, the CLI moves the content forward and updates the sidebar.
+Work moves through discrete stages. At each promotion, the CLI moves content forward and updates the sidebar.
 
-| Phase | What Happens | Where it lives |
-|-------|-------------|----------------|
-| **1. Problem Statement** | Observed pain, evidence, appetite judgment | `work/problem-statements/<slug>.mdx` |
-| **2. Pitch** | Rough solution sketch, rabbit holes, no-gos | `work/pitches/<slug>.mdx` |
-| **3. Active Bet** | Pitch promoted to a bet, TDD designed, execution begins | `work/<slug>/` |
-| **4. Delivered** | Archived with full history | `work/delivered/<slug>/` |
+| Phase | What Happens | Where it lives | CLI command |
+|-------|-------------|----------------|-------------|
+| **1. Problem Statement** | Observed pain, evidence, appetite judgment | `work/problem-statements/<slug>.mdx` | `./dev new problem-statement <slug>` |
+| **2. Pitch** | Problem + rough solution, rabbit holes, no-gos | `work/pitches/<slug>.mdx` | `./dev new pitch <slug>` |
+| **3. Active Bet** | Pitch promoted, TDD designed, execution begins | `work/<slug>/` | `./dev new bet <slug>` |
+| **4. Delivered** | Archived with full history | `work/delivered/<slug>/` | `./dev archive bet <slug>` |
 
-### Content Structure
+### Problem Statements
 
-Active bets live in `services/wordloop-docs/content/docs/work/<slug>/`. Each bet is a directory:
+Problem statements live in `work/problem-statements/`. They capture observed pain — real, evidenced, specific — alongside an appetite judgment. The appetite is an opportunity cost judgment made *before* the solution is defined: how much time is this problem worth?
+
+**Platform and infrastructure problems are valid problem statements.** The "who experiences it" can be the engineering team, the system's reliability, or the business's compliance posture — not just end-users. Feature bets routinely surface infrastructure gaps (e.g., "we have no event backplane between Core pods"). The right response is to extract the gap as its own problem statement rather than expanding the feature bet. The feature bet declares the constraint explicitly; the platform bet solves it.
+
+A problem statement contains three sections: **Problem** (what, who, evidence), **Appetite** (time budget + reasoning), **Why Now** (why this cycle, not later). Templates are in `work/_template/problem-statement.mdx`.
+
+### Pitches
+
+Pitches live in `work/pitches/`. A pitch links a validated problem to a rough solution proposal — concrete enough to execute against, but staying away from micro-detail. Creating a pitch via CLI carries the problem statement content forward automatically.
+
+A pitch must contain:
+- **Problem** and **Why Now** — carried from the problem statement
+- **Proposed Solution** — fat-marker sketch, diagrams encouraged, implementation detail is not
+- **Rabbit Holes** — approaches already ruled out. Include plausible-looking approaches that would blow the appetite *and* infrastructure assumptions the bet makes (e.g., "we assume sticky sessions, not a backplane")
+- **No-Gos** — capabilities explicitly out of scope. Include both obvious exclusions *and* natural extensions users would reasonably expect but that don't belong in this version (these are the most important no-gos because they're the ones most likely to creep in)
+
+Templates are in `work/_template/pitch.mdx`.
+
+### Active Bets — Content Structure
+
+Active bets live in `work/<slug>/`. Each bet is a directory:
 
 ```
 work/<slug>/
@@ -148,12 +170,24 @@ work/<slug>/
 │   ├── index.mdx              ← Overview, success criteria, constraints
 │   ├── ui-design.mdx          ← Screen walkthrough with states and interactions
 │   ├── data-flow.mdx          ← Service-level data flow diagram
-│   ├── domain-slices.mdx      ← Testable domain slices with test cases
 │   ├── milestones/            ← Integration milestones (scaffolded)
+│   ├── domain-slices/         ← Testable domain slices (scaffolded)
 │   ├── contracts/             ← API contracts per boundary (scaffolded)
 │   └── schemas/               ← Database schema plans (scaffolded)
 └── meta.json
 ```
+
+### TDD Documents — What Each One Contains
+
+Templates for all TDD documents are in `work/_template/tdd/`. Read the template before writing a new instance — it contains the structural guidance and scope checks.
+
+**UI Design** (`ui-design.mdx`) — What the user sees and does. Organised by screen, each with: wireframe, layout, states table, key interactions. Then user journeys (ASCII flow diagrams) and edge cases. Scope check: if you're specifying which service owns the logic, you've gone too far — that belongs in Data Flow. For features with live connections, every failure mode gets its own named row in the States table (Degraded, Connectivity Lost, Reconnected — not just "Error"). Edge cases should prompt for: concurrent access (multi-tab, multi-user), session boundaries (tab close, token expiry), resource limits, and background/foreground behaviour.
+
+**Data Flow** (`data-flow.mdx`) — Maps every user action from the UI Design through service boundaries. Starts with a **system context graph** (topology, not sequence), then groups flows into logical **Parts** with numbered sequence diagrams. Diagrams use descriptive operation labels — never endpoint paths, header names, or field names (those belong in Contracts). Failure mode flows are **required** for every significant service boundary. Closes with two required sections: **Design Decisions** (tradeoffs, constraints, alternatives ruled out — including infrastructure constraints, scope deferrals, performance choices, lifecycle policies) and **Boundary Inventory** (5 columns: Boundary | Flows | From → To | Protocol | Data shape — each row becomes a contract).
+
+**Contracts** (`contracts/`) — Agreed API contracts (REST, WebSocket, Pub/Sub) derived from the Boundary Inventory. Scaffolded via `./dev new contract`.
+
+**Schemas** (`schemas/`) — Database schemas (PostgreSQL, object storage) derived from the data objects defined in UI Design and the persistence decisions in Data Flow. Scaffolded via `./dev new schema`.
 
 ### Wireframe Images
 
@@ -167,17 +201,9 @@ Every domain slice and milestone in the TDD must define test cases. Tests serve 
 
 The bet progress suite starts all-red, goes green as slices ship, and is archived with the bet.
 
-### Scaffolding a Bet
-
-```bash
-./dev new bet <slug>
-```
-
-Promotes a pitch from `work/pitches/<slug>.mdx` into an active bet at `work/<slug>/`. Also scaffolds `tests/bets/<slug>/` with the bet progress test suite. The slug must be lowercase kebab-case (e.g. `speaker-navigation`). A pitch must exist before a bet can be created.
-
 ### Scaffolding Architecture (TDD)
 
-You should progressively generate architecture components using the Golden Path CLI. This ensures test stubs and documentation stay synchronized.
+Progressively generate architecture components using the Golden Path CLI. This ensures test stubs and documentation stay synchronised.
 
 ```bash
 # Scaffolds milestones and domains
@@ -194,8 +220,6 @@ You should progressively generate architecture components using the Golden Path 
 ```bash
 ./dev test bet <slug>
 ```
-
-Runs the bet progress suite on demand to check delivery progress.
 
 ### Archiving a Delivered Bet
 
