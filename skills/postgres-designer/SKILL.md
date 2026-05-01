@@ -1,162 +1,108 @@
 ---
 name: postgres-designer
-description: Design and review PostgreSQL schemas, table structures, indexes, constraints, migrations, and query optimization strategies following 2026 data modeling best practices. Make sure to use this skill whenever a user mentions PostgreSQL table design, schema modeling, normalization, indexes, foreign keys, soft deletes, partitioning, migrations, column types, constraints, JSONB vs columns, query performance, explain plans, connection pooling, row-level security, multi-tenancy, vector search, pgvector, EXPLAIN plan, pg_stat_statements, autovacuum, database migration, or wants to design a new entity or relationship in a Postgres database — even if they don't explicitly say "postgres-designer" or "schema design". Also invoke when the user asks about UUID v7, keyset pagination, zero-downtime migrations, expand-contract pattern, or database sharding.
-metadata:
-  version: "1.0.0"
-  domain: data-engineering
-  triggers: PostgreSQL, schema design, table design, data modeling, migration, indexes, constraints, JSONB, RLS, pgvector, EXPLAIN ANALYZE, partitioning, connection pooling, autovacuum
-  role: architect
-  scope: implementation
-  output-format: sql
-  related-skills: core-engineer, platform-engineer, test-architect
+description: >
+  Design and review PostgreSQL schemas, migrations, indexes, constraints,
+  query plans, RLS, JSONB usage, and pgvector patterns using canonical
+  Wordloop data docs. Use for schema modeling, migrations, table design,
+  column types, UUID strategies, indexes, EXPLAIN plans, query performance,
+  vector search, full-text search, partitioning, retention, privacy, row-
+  level security, zero-downtime migrations, or database drift. Make sure to
+  use this skill whenever a user is working on database schema changes,
+  writing migrations, debugging slow queries, or designing data models, even
+  if they don't explicitly ask for a "postgres designer."
 ---
 
 # Postgres Designer
 
-You are a senior PostgreSQL data architect. You design schemas that are correct by construction — enforcing invariants at the database layer, not the application layer — while remaining legible, migration-friendly, and performant under real-world query patterns.
+PostgreSQL execution designer for Wordloop data changes. This skill guides schema design, migration safety, index strategy, and query performance — starting from access patterns, growth projections, and data privacy requirements.
 
-Your outputs are concrete: SQL DDL, migration files, index definitions, and constraint declarations. You explain *why* each decision was made so engineers understand the trade-offs, not just the recipe.
+## Operating Contract
 
-## Core Workflow
+1. Model invariants in the database where practical. Constraints, foreign keys, and check expressions catch bugs that application code misses.
+2. Start from access patterns, growth projections, tenancy model, privacy requirements, and migration safety before designing schema.
+3. Treat migrations and the generated database reference as source-of-truth surfaces. Schema changes flow through migrations, not ad-hoc DDL.
+4. Keep schema guidance in docs and use this skill for design workflow and verification.
 
-### Step 1: Understand the Domain
+## Core Pillars
 
-Before touching DDL, understand the bounded context:
+1. **Access-Pattern-First Design** — Schema design starts with the queries, not the entities. Know the read/write ratio, expected row counts, hot paths, and join patterns before choosing types, indexes, and normalization level. A beautifully normalized schema that requires five-table joins on every page load is a performance liability, not good design.
 
-- What **entities** are being modeled and what are their relationships (1:1, 1:N, M:N)?
-- What are the **access patterns** — which queries will be hot, which are analytical?
-- What is the **cardinality** and expected growth rate?
-- Are there **temporal**, **audit**, or **multi-tenancy** requirements?
-- Will the system need **vector search** for embeddings or semantic operations?
+2. **Migration Safety** — Every schema change must be deployable without downtime. Use the expand-contract pattern: add the new column/table, migrate data, switch reads, drop the old structure. Never run `ALTER TABLE ... ADD COLUMN NOT NULL` without a default on a large table. Never drop a column that active code still references. Migration safety is more important than schema elegance.
 
-Use this information to make deliberate choices about normalization level, index strategy, and storage format.
+3. **Database-Enforced Invariants** — The database outlives the application code. Constraints (NOT NULL, UNIQUE, CHECK, FOREIGN KEY) encode business rules that survive code rewrites, API changes, and team turnover. If an invariant matters, model it in the schema. Application-only validation is a suggestion; a database constraint is a guarantee.
 
-### Step 2: Design the Schema
+4. **Index Strategy** — Indexes are not free. Each index slows writes, consumes storage, and needs maintenance. Design indexes for specific query patterns, not "just in case." Use EXPLAIN ANALYZE to verify indexes are actually used. Understand when B-Tree, GIN, GiST, BRIN, or partial indexes are appropriate. An unused index is pure cost.
 
-Apply these decisions in order:
+5. **Data Privacy by Design** — Row-level security, column encryption, retention policies, and audit trails are schema-level concerns, not afterthoughts. Design for data isolation from the start. Adding RLS to a mature schema is significantly harder than building it in from day one.
 
-1. **Choose primary key strategy** — prefer `BIGINT GENERATED ALWAYS AS IDENTITY` for internal-only keys; use `UUID` (v7 for sortability) when global uniqueness, distribution, or opaque external IDs are needed. Load `references/table-design.md` for the full decision matrix.
-2. **Model relationships** — use foreign keys with explicit `ON DELETE` / `ON UPDATE` actions. Never leave relationship semantics implicit.
-3. **Select column types** — smallest correct type wins. Use `TEXT` over `VARCHAR(n)` unless the constraint is a business rule. Prefer `TIMESTAMPTZ` over `TIMESTAMP`. Load `references/types.md` for the full decision guide.
-4. **Add constraints** — `NOT NULL`, `CHECK`, `UNIQUE`, and `EXCLUDE` constraints enforce correctness at the storage layer. Application-layer validation is a supplement, not a replacement. Load `references/constraints.md` for patterns and naming conventions.
-5. **Define indexes** — index for access patterns, not for coverage. Load `references/indexes.md` to select between B-tree, GIN, GiST, BRIN, partial, and covering indexes.
-6. **Plan for vector search** — if the domain involves embeddings or semantic similarity, load `references/indexes.md` for the pgvector HNSW/IVFFlat section.
+## How to Use This Skill
 
-### Step 3: Plan Migrations
-
-Every schema change must be a safe, backward-compatible migration. Load `references/migrations.md` for:
-
-- The expand-contract pattern for zero-downtime deployments
-- Column additions/removals without locks
-- `CREATE INDEX CONCURRENTLY` for online index builds
-- `NOT VALID` + `VALIDATE CONSTRAINT` for safe constraint additions
-- Shadow-column pattern for type changes
-- `lock_timeout` discipline to prevent lock queue cascades
-
-### Step 4: Validate with Query Analysis
-
-Verify the design holds up under realistic query patterns. Load `references/query-performance.md` for:
-
-- Reading `EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)` output
-- Identifying sequential scan risks and missing indexes
-- N+1 query detection and lateral join rewrites
-- `work_mem` tuning and disk-spill diagnosis
-- `pg_stat_statements` for top-query identification
-
-For connection pooling, read replicas, and sharding, load `references/scaling.md`.
-
-## Reference Guide
-
-Load detailed guidance according to the design domain you are working in:
+Match the user's task to the smallest relevant reference set. Most tasks touch one or two references.
 
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
-| **Table Design** | `references/table-design.md` | Deciding primary key strategy, normalization level, naming conventions, soft-delete vs hard-delete, audit log patterns, temporal tables, or M:N junction table design. |
-| **Column Types** | `references/types.md` | Choosing between `BIGINT`, `UUID`, `TEXT`, `JSONB`, `TIMESTAMPTZ`, `NUMERIC`, `ENUM`, arrays, ranges, domain types, composite types, network types, or `pgvector` vectors. |
-| **Indexes** | `references/indexes.md` | Selecting index type (B-tree, GIN, GiST, BRIN, partial, covering, expression), building composite indexes, or configuring `pgvector` HNSW/IVFFlat for vector search. |
-| **Constraints** | `references/constraints.md` | Writing `NOT NULL`, `CHECK`, `UNIQUE`, `EXCLUDE`, foreign key, and deferrable constraints. Naming conventions and column-level vs table-level placement. |
-| **Migrations** | `references/migrations.md` | Writing zero-downtime migrations: expand-contract, `CREATE INDEX CONCURRENTLY`, `NOT VALID` constraint additions, shadow-column type changes, backfill strategies, and `lock_timeout` discipline. |
-| **Query Performance** | `references/query-performance.md` | Reading `EXPLAIN ANALYZE`, diagnosing sequential scans, rewriting N+1 queries, `work_mem` tuning, vacuuming, partitioning, and `pg_stat_statements`. |
-| **Scaling Architecture** | `references/scaling.md` | Connection pooling with PgBouncer, read replicas, horizontal sharding (Citus, Multigres), and PostgreSQL-native background job patterns (`LISTEN/NOTIFY`, `SKIP LOCKED`, `pg_cron`). |
-| **Security & RLS** | `references/security.md` | Implementing Row-Level Security for multi-tenancy, least-privilege role design, column encryption with `pgcrypto`, audit log triggers, and secrets management. |
-| **JSONB Patterns** | `references/jsonb.md` | Deciding when JSONB is appropriate vs. normalized columns, GIN index strategies, operator reference, schema validation with `pg_jsonschema`, and the hybrid column pattern. |
+| Table Design | `references/table-design.md` | Designing new tables, choosing normalization level, entity relationships. |
+| Data Types | `references/types.md` | Choosing column types, UUID strategies (v4 vs v7), timestamp handling, enums. |
+| Constraints | `references/constraints.md` | Defining NOT NULL, UNIQUE, CHECK, FK constraints, exclusion constraints. |
+| Indexes | `references/indexes.md` | Index type selection (B-Tree, GIN, GiST, BRIN), partial indexes, covering indexes. |
+| Migrations | `references/migrations.md` | Zero-downtime migrations, expand-contract pattern, migration tooling. |
+| Query Performance | `references/query-performance.md` | EXPLAIN ANALYZE, query optimization, common performance patterns. |
+| JSONB | `references/jsonb.md` | JSONB column design, indexing strategies, when to use vs normalize. |
+| Security | `references/security.md` | Row-level security, column encryption, audit trails, access control. |
+| Scaling | `references/scaling.md` | Partitioning, sharding strategies, connection pooling, read replicas. |
 
-## Constraints
+## Required Wordloop Context
 
-### MUST DO
-- **Enforce at the DB layer:** `NOT NULL`, foreign keys, and `CHECK` constraints are non-negotiable for invariants the domain relies on. Application code is fallible; the schema is not.
-- **Name everything explicitly:** All constraints, indexes, and foreign keys must have explicit names (`CONSTRAINT pk_users PRIMARY KEY`, not anonymous PKs). Anonymous constraints break `ALTER TABLE` diffing and migration tooling.
-- **Use `TIMESTAMPTZ` always:** Store all timestamps in UTC with timezone awareness. `TIMESTAMP WITHOUT TIME ZONE` is a footgun in multi-region deployments.
-- **Write safe migrations:** Every migration must be idempotent (`IF NOT EXISTS`, `IF EXISTS`) and non-locking where possible (`CREATE INDEX CONCURRENTLY`, `ADD COLUMN` with immutable defaults).
-- **Document the why:** Each non-obvious design decision (denormalization, partial index, JSONB vs column) requires an inline SQL comment explaining the trade-off.
-- **Index every foreign key:** PostgreSQL does not auto-index FK columns. Every `REFERENCES` column must have a corresponding index unless the table is known to be small and update-infrequent.
+Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
 
-### MUST NOT DO
-- **No `VARCHAR(n)` for variable text:** Use `TEXT` unless the length limit is a first-class business rule enforced at both UI and DB.
-- **No `SERIAL` / `BIGSERIAL`:** Use `BIGINT GENERATED ALWAYS AS IDENTITY` instead. `SERIAL` has ownership and permission quirks.
-- **No `TIMESTAMP` without timezone:** Always use `TIMESTAMPTZ`.
-- **No `MONEY` type:** Use `NUMERIC(p,s)`.
-- **No `CHAR(n)`:** Use `TEXT`.
-- **No application-managed soft deletes without DB support:** If soft-delete is required, enforce it via a `deleted_at TIMESTAMPTZ` column with partial unique indexes that exclude deleted rows.
-- **No unindexed foreign keys:** Every `REFERENCES` column must have a corresponding index.
-- **No multi-column indexes without justification:** Composite indexes must be ordered for selectivity and match actual query predicates.
+- `principles/stack/postgres` — Wordloop's PostgreSQL conventions and design philosophy.
+- `reference/database` — Generated database reference (source of truth for current schema).
+- `guides/migrate-schema` — Migration workflow, tooling, and safety checklist.
 
-## Anti-Patterns to Flag
+## Task Routing
 
-When reviewing or designing schemas, actively flag these violations:
+- **New table/entity** → Read Postgres principle and migration guide. Load `references/table-design.md` and `references/types.md`. Start from access patterns.
+- **Performance issue** → Run EXPLAIN ANALYZE on the problem query. Load `references/query-performance.md` and `references/indexes.md`.
+- **Index changes** → Load `references/indexes.md`. Verify the index will be used with EXPLAIN ANALYZE before adding.
+- **JSONB/vector work** → Load `references/jsonb.md`. Read Postgres principle for guidance on when to use JSONB vs normalized columns.
+- **Migration authoring** → Load `references/migrations.md`. Verify the migration is safe for zero-downtime deployment.
+- **Privacy/retention work** → Load `references/security.md`. Read Privacy principle and active design docs.
+- **Scaling decisions** → Load `references/scaling.md`. Check current table sizes and growth projections.
 
-| Anti-Pattern | Why It's Dangerous | Fix |
-|---|---|---|
-| Random UUID v4 for high-velocity PKs | B-tree fragmentation — 500x more page splits than sequential IDs | Use `uuidv7()` or `BIGINT IDENTITY` |
-| EAV (Entity-Attribute-Value) tables | Extremely complex joins, poor query performance | Use JSONB for flexible attributes, typed columns for known fields |
-| `CREATE INDEX` without `CONCURRENTLY` on live tables | Blocks all writes for the entire build duration | Always use `CREATE INDEX CONCURRENTLY` |
-| `NOT NULL` via `ALTER COLUMN SET NOT NULL` on large tables | Full table scan under `ACCESS EXCLUSIVE` lock | Use `CHECK (col IS NOT NULL) NOT VALID` + `VALIDATE` |
-| Big Bang migration (DDL + code deploy in one step) | Race condition during rolling updates — old/new pods break | Use the expand-contract pattern |
-| `OFFSET` pagination on large tables | Performance degrades linearly with page depth | Use keyset (cursor) pagination |
-| Unindexed FK columns | Parent deletes acquire `SHARE` lock on entire child table | Add index on every FK column |
-| Functions on indexed columns in WHERE | Index is not used — `WHERE DATE(created_at) = ...` | Rewrite as range predicate or add expression index |
+## Safety Gates
 
-## Output Format
+- Do not design schema without known access patterns. A table designed without knowing how it will be queried is a performance risk.
+- Do not propose blocking or destructive migrations without expand-contract reasoning. Locking a large table during deployment causes downtime.
+- Do not hand-edit the generated DB reference as the source fix. Update the migration and regenerate.
+- Do not add indexes without verifying they will be used. EXPLAIN ANALYZE is the validation, not intuition.
+- Do not skip foreign key constraints for "performance" without measuring the actual cost and documenting the tradeoff.
+- Run migration and test commands appropriate to the service.
 
-For each schema design task, deliver:
+## Hallucination Controls
 
-1. **DDL** — Full `CREATE TABLE` with named constraints and inline comments
-2. **Indexes** — `CREATE INDEX` / `CREATE UNIQUE INDEX` statements with rationale
-3. **Migration file** — Ready-to-run SQL with idempotent guards and `lock_timeout` discipline
-4. **Access pattern validation** — Example queries with `EXPLAIN` guidance
-5. **Design rationale** — Brief explanation of key decisions and trade-offs
+Before presenting database guidance as factual:
 
-```sql
--- Example output structure
+- Check the generated database reference for current schema, table names, and column types.
+- Check existing migrations for naming conventions, ordering, and patterns.
+- Check PostgreSQL version compatibility for features (e.g., MERGE, JSON path queries).
+- Run EXPLAIN ANALYZE on actual data before recommending index or query changes.
+- Label any recommendation based on general PostgreSQL knowledge (rather than Wordloop-specific schema) as an inference.
 
--- ============================================================
--- Migration: 0023_create_meetings.sql
--- Description: Meeting entity for recording sessions
--- ============================================================
+## Output Expectations
 
-SET LOCAL lock_timeout = '5s';
+- Schema changes include the migration SQL and a safety assessment (locking behavior, data volume impact, rollback plan).
+- New tables include the access patterns they serve and the indexes they need.
+- Performance recommendations include EXPLAIN ANALYZE output before and after.
+- Verification steps include specific migration commands and test scenarios.
+- Recommendations distinguish between Wordloop database conventions and general PostgreSQL best practices.
 
-CREATE TABLE IF NOT EXISTS meetings (
-    id           UUID        NOT NULL DEFAULT uuidv7(),  -- UUIDv7: time-sorted, no index scatter
-    workspace_id UUID        NOT NULL,
-    title        TEXT        NOT NULL,
-    status       TEXT        NOT NULL DEFAULT 'pending',
-    started_at   TIMESTAMPTZ,
-    ended_at     TIMESTAMPTZ,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    deleted_at   TIMESTAMPTZ,
+## Antipatterns
 
-    CONSTRAINT pk_meetings           PRIMARY KEY (id),
-    CONSTRAINT fk_meetings_workspace FOREIGN KEY (workspace_id)
-        REFERENCES workspaces (id) ON DELETE CASCADE,
-    -- TEXT + CHECK preferred over ENUM: values can be added/removed via migration
-    -- without a type migration. See references/types.md for the full trade-off.
-    CONSTRAINT chk_meetings_status   CHECK (status IN ('pending', 'recording', 'processing', 'done', 'failed')),
-    CONSTRAINT chk_meetings_timeline CHECK (ended_at IS NULL OR ended_at > started_at)
-);
+Reject these patterns:
 
--- FK index: accelerate workspace-scoped queries and prevent parent-delete locks
-CREATE INDEX IF NOT EXISTS idx_meetings_workspace_active
-    ON meetings (workspace_id, created_at DESC)
-    WHERE deleted_at IS NULL;
-```
+- **Schema without access patterns** — Designing tables from an entity model without knowing the query patterns. Beautiful normalization means nothing if every read requires five joins.
+- **Destructive migration** — Dropping columns, renaming tables, or changing types without the expand-contract pattern. These lock tables and break running code.
+- **Index speculation** — Adding indexes "just in case" without query evidence. Each index has write and storage costs.
+- **JSONB as schema escape** — Using JSONB columns to avoid schema design decisions. JSONB is appropriate for genuinely dynamic data, not for avoiding migrations.
+- **Application-only constraints** — Enforcing uniqueness, nullability, or referential integrity only in application code. The database should enforce invariants that matter.
+- **Manual reference editing** — Hand-writing database reference docs that should be generated from the actual schema.

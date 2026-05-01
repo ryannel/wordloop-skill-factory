@@ -1,0 +1,41 @@
+{
+  "skill_name": "api-architect",
+  "evals": [
+    {
+      "id": "design-new-endpoint",
+      "prompt": "We need a new REST endpoint for listing meeting transcripts with pagination, filtering by date range, and optional full-text search. Design the API contract including URL, method, query params, response shape, and error cases.",
+      "expected_output": "Produces a contract-first design with consistent resource naming, cursor-based pagination, structured error envelope, and references to existing Wordloop API conventions.",
+      "files": [],
+      "assertions": [
+        "Designs the contract before mentioning implementation details.",
+        "Uses cursor-based pagination consistent with existing list endpoints, or justifies an alternative.",
+        "Includes a structured error response following the shared error envelope pattern.",
+        "References OpenAPI spec or existing Core API reference for naming conventions."
+      ]
+    },
+    {
+      "id": "review-breaking-change",
+      "prompt": "A teammate wants to rename the 'status' field to 'state' on the meeting resource and remove the deprecated 'legacy_id' field in the same release. Review this proposal for API lifecycle safety.",
+      "expected_output": "Identifies both changes as breaking, recommends expand-contract migration, and outlines a versioning or deprecation strategy.",
+      "files": [],
+      "assertions": [
+        "Identifies the field rename and field removal as breaking changes for existing consumers.",
+        "Recommends an expand-contract approach rather than a single breaking release.",
+        "Mentions sunset headers, deprecation notices, or versioning strategy.",
+        "Considers the impact on generated SDK clients and documentation."
+      ]
+    },
+    {
+      "id": "agent-readability-audit",
+      "prompt": "Audit this endpoint design for agent-readability: GET /api/meetings returns a JSON array with no envelope, uses numeric error codes without descriptions, and has no examples in the OpenAPI spec. What improvements would you recommend?",
+      "expected_output": "Recommends response envelope with metadata, descriptive error types, OpenAPI examples, and idempotency considerations.",
+      "files": [],
+      "assertions": [
+        "Recommends wrapping the response in an envelope with pagination metadata.",
+        "Suggests replacing or augmenting numeric error codes with descriptive, deterministic error types.",
+        "Recommends adding examples to the OpenAPI spec for both success and error cases.",
+        "Addresses how the changes improve consumption by AI agents and automated tooling."
+      ]
+    }
+  ]
+}

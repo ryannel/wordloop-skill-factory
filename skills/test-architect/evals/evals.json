@@ -1,0 +1,41 @@
+{
+  "skill_name": "test-architect",
+  "evals": [
+    {
+      "id": "test-strategy-for-feature",
+      "prompt": "We're adding a meeting recording upload feature: users upload an audio file via the app, it's stored in cloud storage, then the ML service processes it for transcription. The feature touches the frontend (upload form), Core API (new endpoint), cloud storage (file persistence), and ML service (async processing). Design the test strategy.",
+      "expected_output": "Designs a multi-layer test strategy starting from risk, with specific test types for each service boundary and a justification for fidelity choices.",
+      "files": [],
+      "assertions": [
+        "Starts from a risk assessment identifying the critical paths (upload reliability, processing pipeline, cross-service handoff).",
+        "Proposes different test types for different layers (component tests for UI, service tests for API, contract tests for cross-service boundaries).",
+        "Recommends high-fidelity testing (testcontainers, emulators) for the storage and ML service integration rather than mocks.",
+        "Addresses the async processing flow (how to test that the ML service picks up and processes the upload)."
+      ]
+    },
+    {
+      "id": "mock-vs-emulation-decision",
+      "prompt": "A teammate wrote unit tests for the meeting repository that mock the database with an in-memory map. The tests pass but they missed a bug where a query used the wrong column in an ORDER BY clause — the mock didn't care about ordering. Should we keep the mocks or switch to something higher fidelity?",
+      "expected_output": "Recommends replacing the mock with a real database (testcontainers) for repository tests, keeping mocks only where they provide genuine value.",
+      "files": [],
+      "assertions": [
+        "Identifies that the mock hid a real bug because it didn't enforce database semantics.",
+        "Recommends testcontainers or an equivalent real database for repository-level tests.",
+        "Explains when mocks are still appropriate (external APIs with rate limits, expensive third-party services).",
+        "Frames the tradeoff: slightly slower tests vs. higher confidence that queries actually work."
+      ]
+    },
+    {
+      "id": "flaky-test-diagnosis",
+      "prompt": "A system test that verifies meeting creation intermittently fails with 'expected 1 meeting, got 2'. It passes when run alone but fails about 30% of the time in CI when run alongside other tests. The test creates a meeting, then queries for meetings and asserts the count. What's likely wrong and how do you fix it?",
+      "expected_output": "Identifies shared mutable state (other tests creating meetings in the same database) and recommends test isolation strategies.",
+      "files": [],
+      "assertions": [
+        "Identifies shared database state as the likely cause (other tests creating meetings that leak across test boundaries).",
+        "Recommends test isolation: per-test database cleanup, transaction rollback, or unique test tenants.",
+        "Suggests the test should filter by a unique identifier rather than asserting on a global count.",
+        "Does not recommend 'just retry' or 'add a sleep' as fixes."
+      ]
+    }
+  ]
+}

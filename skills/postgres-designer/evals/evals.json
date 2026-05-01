@@ -1,0 +1,41 @@
+{
+  "skill_name": "postgres-designer",
+  "evals": [
+    {
+      "id": "table-design-from-access-patterns",
+      "prompt": "We need to store meeting recordings. Each meeting has one recording, recordings have a status (uploading, processing, ready, failed), a duration, a file URL, and metadata about the transcription job. The main queries are: get recording by meeting ID, list all recordings in processing state, and count recordings by status for a dashboard. Design the table.",
+      "expected_output": "Designs a table with appropriate types, constraints, indexes matched to the stated access patterns, and migration safety considerations.",
+      "files": [],
+      "assertions": [
+        "Chooses column types appropriate for each field (e.g., enum or check constraint for status, interval or integer for duration).",
+        "Adds indexes specifically for the stated query patterns (meeting_id lookup, status filtering).",
+        "Includes NOT NULL constraints and foreign key to the meetings table.",
+        "Considers the migration approach for creating the new table."
+      ]
+    },
+    {
+      "id": "migration-safety-review",
+      "prompt": "We need to add a NOT NULL 'organization_id' column to the meetings table, which has 2 million rows. The column should reference the organizations table. A teammate wrote a single migration: ALTER TABLE meetings ADD COLUMN organization_id UUID NOT NULL REFERENCES organizations(id). Review this for production safety.",
+      "expected_output": "Identifies the migration as unsafe for zero-downtime deployment and proposes an expand-contract alternative.",
+      "files": [],
+      "assertions": [
+        "Identifies that ADD COLUMN NOT NULL without a default will fail on existing rows or lock the table.",
+        "Recommends a multi-step expand-contract approach (add nullable, backfill, add constraint).",
+        "Addresses the foreign key constraint impact on write performance.",
+        "Considers the backfill strategy for 2 million existing rows."
+      ]
+    },
+    {
+      "id": "query-performance-diagnosis",
+      "prompt": "This query is taking 800ms in production: SELECT m.*, t.content FROM meetings m JOIN transcripts t ON t.meeting_id = m.id WHERE m.organization_id = $1 AND m.created_at > $2 ORDER BY m.created_at DESC LIMIT 50. The meetings table has 5M rows, transcripts has 8M rows. What would you investigate and how would you optimize?",
+      "expected_output": "Starts with EXPLAIN ANALYZE, identifies likely missing or suboptimal indexes, and proposes targeted optimizations based on the access pattern.",
+      "files": [],
+      "assertions": [
+        "Recommends running EXPLAIN ANALYZE as the first diagnostic step.",
+        "Identifies likely index needs (composite index on organization_id + created_at).",
+        "Considers whether SELECT * is pulling unnecessary columns and suggests selecting only needed fields.",
+        "Addresses the join performance and whether an index on transcripts.meeting_id exists."
+      ]
+    }
+  ]
+}

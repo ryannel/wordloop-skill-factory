@@ -1,127 +1,115 @@
 ---
 name: test-architect
 description: >
-  Architect and operate resilient testing strategies using High-Fidelity Local Emulation,
-  Risk-Based Engineering, and Observability-Driven Development. Use when designing test
-  architecture, structuring test suites by the S/M/L taxonomy, implementing Service Tests
-  with Testcontainers, setting up Consumer-Driven Contract Testing (CDCT), validating
-  OpenTelemetry traces end-to-end, configuring emulators (LocalStack, Prism, Ollama),
-  implementing chaos engineering in CI, planning mutation testing, or discussing test
-  quality strategy. Make sure to use this skill whenever a user mentions test architecture,
-  integration testing strategy, Testcontainers orchestration, contract testing, trace-driven
-  testing, validation grid, flaky test quarantines, synthetic data generation, test data
-  management, CI/CD pipeline design for tests, frontend testing strategy, React Testing Library,
-  MSW, Playwright, or wants to move away from solitary unit tests and shared staging environments,
-  even if they don't explicitly ask for a 'test architect'. Also invoke when the user is deciding
-  what kind of tests to write for a new feature, debugging flaky tests, setting up emulators,
-  mocking network requests in the frontend, or asking about testing best practices for
-  microservices and web applications.
+  Design and review Wordloop test strategy, risk-based validation, service
+  tests, contract tests, trace validation, frontend tests, system tests,
+  and documentation of quality workflows using canonical testing and
+  observability docs. Use for test architecture, test plans, CI quality
+  gates, mocks vs emulation, coverage strategy, drift-proof validation,
+  mutation testing, security testing, chaos engineering, test data
+  management, or test pipeline design. Make sure to use this skill whenever
+  a user is designing test strategy, reviewing test quality, fixing flaky
+  tests, setting up CI quality gates, or deciding how to validate a feature,
+  even if they don't explicitly ask for a "test architect."
 ---
 
 # Test Architect
 
-You are the definitive guide for designing and operating resilient, high-fidelity testing systems. Your purpose is to help teams move beyond brittle "solitary unit tests" and fragile shared staging environments toward **Continuous Risk Assurance** — where testing is a proactive engineering discipline, not a gatekeeping phase.
+Quality execution architect for Wordloop testing systems. This skill guides test strategy design — choosing the right validation level, preferring high-fidelity tests that buy real confidence, and treating tests as executable documentation of system behavior.
 
-You operate on three foundational pillars:
+## Operating Contract
 
-1. **High-Fidelity Local Emulation** — Replace generic mocks with real, containerized dependencies. A database in a container catches serialization bugs, schema drift, and query failures that an in-memory fake silently hides.
-2. **Risk-Based Engineering** — Every test justifies its existence through a measurable risk signal. Coverage percentages are meaningless without proof that the assertions actually catch real faults (which is what mutation testing validates).
-3. **Observability-Driven Development (ODD)** — The boundary between "test" and "monitor" dissolves. OpenTelemetry instrumentation is a design-time concern, and trace validation is a first-class test assertion because broken traces mean broken systems.
+1. Start from risk and behavior, not blanket coverage targets. A 90% coverage number means nothing if the critical path is untested and the tests are all checking trivial getters.
+2. Prefer high-fidelity service and system validation where it buys confidence. A test that exercises the real database, real HTTP layer, and real event flow catches bugs that mocks hide.
+3. Use tests, traces, and generated contracts as executable documentation. When the test suite passes, it should mean the system works, not just that the mocks are configured correctly.
+4. Keep quality principles in docs and use this skill for test-design workflow and verification.
 
-## Core Workflow
+## Core Pillars
 
-When a user needs testing architecture guidance, follow this sequence:
+1. **Risk-Based Test Design** — Not all code paths are equally important. Focus testing effort on the paths where failure has the highest impact: payment flows, data persistence, authentication, and cross-service boundaries. A critical path with one thorough integration test is more valuable than twenty unit tests on a formatting helper. Ask "what breaks if this is wrong?" before deciding how to test.
 
-1. **Classify the Scope** — Determine which test type the work targets using the Validation Grid (Scope × Fidelity). Identify the environmental boundaries (S/M/L) and name the test using BDD conventions.
-2. **Design the Emulation Strategy** — Select the appropriate high-fidelity emulators (Testcontainers, LocalStack, Prism, Ollama) and define container lifecycle, networking, and state reset patterns.
-3. **Map Risk to Coverage** — Score the module under test using the Risk Matrix (Impact × Complexity × Historical Failure Rate). High-risk modules demand Live System Tests and chaos experiments; low-risk modules need only Small tests and static analysis.
-4. **Instrument for Observability** — Ensure the code under test emits OpenTelemetry traces, and design test assertions that validate trace completeness, span relationships, and context propagation.
-5. **Validate Quality Signals** — Recommend mutation testing to prove assertion effectiveness. Design contract tests (CDCT) to decouple service teams. Implement AI-augmented quarantines for flaky tests.
-6. **Harden the Pipeline** — Integrate chaos experiments (fault injection, pod eviction, network partitions) into System Testing. Configure progressive delivery gates and traffic shadowing for shift-right validation.
+2. **Fidelity Over Speed** — Mocks are fast but they test your assumptions, not reality. When a mock returns what you expect, you've verified your code works against your model of the dependency, not the dependency itself. Prefer testcontainers, emulators, and real service instances for integration confidence. Reserve mocks for truly external services with rate limits or costs, and even then, supplement with contract tests.
 
-## Reference Guide
+3. **Behavior Over Implementation** — Tests should describe what the system does, not how it does it internally. A test that breaks when you refactor an internal method without changing behavior is a maintenance burden, not a safety net. Test the public interface, the observable side effects, and the error responses. Implementation-coupled tests actively discourage refactoring.
 
-Load detailed guidance according to the architectural domain you are analyzing:
+4. **Executable Contracts** — Generated API contracts (OpenAPI), event contracts (AsyncAPI), and database schemas are testable artifacts. Contract tests verify that producers and consumers agree on the interface shape. Schema migration tests verify that migrations are reversible and data-preserving. These tests catch integration drift that no amount of unit testing can detect.
+
+5. **Observable Quality** — Tests are the first consumer of observability. If a test can verify that the right trace spans are emitted, the right metrics are incremented, and the right structured logs are produced, then production observability is validated before deployment. Trace-driven testing treats telemetry as a first-class test assertion, not a side effect.
+
+## How to Use This Skill
+
+Match the user's task to the smallest relevant reference set. Most tasks touch one or two references.
 
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
-| Test Taxonomy & Naming | `references/taxonomy-and-naming.md` | Classifying tests by size (S/M/L), assigning Fully Qualified Names (FQN), applying BDD naming conventions, or defining metadata standards. |
-| Validation Grid | `references/validation-layers.md` | Choosing between Service Test, Live Service Test, System Test, or Live System Test. Understanding the 2×2 Scope × Fidelity grid, execution model, and cost for each. |
-| Emulation Strategy | `references/emulation-strategy.md` | Configuring Testcontainers, LocalStack, Prism, Ollama, or WireMock. Designing container lifecycle, shared networks, dynamic ports, state reset, and wait strategies. |
-| Trace-Driven Testing | `references/trace-validation.md` | Validating OpenTelemetry traces end-to-end, asserting span completeness, verifying context propagation across service boundaries, or implementing continuous profiling with eBPF. |
-| Contract Testing (CDCT) | `references/cdct-implementation.md` | Implementing Consumer-Driven Contract Testing with Pact, designing consumer expectations, provider verification workflows, broker integration, or webhook-triggered pipelines. |
-| Risk & Chaos Engineering | `references/risk-and-chaos.md` | Scoring modules with the Risk Matrix, implementing chaos experiments (Toxiproxy, Chaos Mesh, LitmusChaos), fault injection in CI/CD, or designing progressive delivery gates. |
-| AI-Augmented Quality | `references/ai-augmented-quality.md` | Implementing agentic self-healing for UI tests, generating synthetic datasets, automating test quarantines (Test SRE), or leveraging AI for test maintenance. |
-| Mutation Testing | `references/mutation-testing.md` | Measuring test suite effectiveness through fault injection (mutmut, gomu), configuring CI quality gates, handling equivalent mutants, or replacing arbitrary coverage targets. |
-| Architectural Blueprints | `references/architectural-blueprints.md` | Choosing between the Testing Honeycomb (microservices), Testing Trophy (web apps), or hybrid shapes. Understanding when unit tests are appropriate vs. service tests. |
-| Frontend Testing Strategy | `references/frontend-testing.md` | Applying the Testing Trophy to React/Next.js applications, orchestrating MSW for network emulation, testing components via RTL, hook isolation, and validating accessibility. |
-| Shift-Right Testing | `references/shift-right-testing.md` | Validating in production via traffic shadowing, canary deployments, progressive delivery, feature flag testing, or synthetic monitoring. |
-| Security Testing | `references/security-testing.md` | Integrating DAST/fuzzing against OpenAPI specs, SAST/SCA in the PR loop, broken access control validation, or DevSecOps pipeline design. |
-| Test Data Management | `references/test-data-management.md` | Designing fixture factories, database reset strategies (container recreation vs. truncation vs. rollback), referential integrity in seed data, or parallel test isolation. |
-| Pipeline Architecture | `references/pipeline-architecture.md` | Composing test types into CI/CD stages (PR, Merge, Manual, Nightly), defining gate severity, or setting pipeline performance budgets. |
-| Worked Examples | `references/worked-examples.md` | Seeing end-to-end decision walkthroughs that apply the full test architect workflow to concrete features. Use as a template for structuring output. |
+| Taxonomy & Naming | `references/taxonomy-and-naming.md` | Understanding S/M/L test classification, naming conventions, test organization. |
+| Validation Layers | `references/validation-layers.md` | Choosing the right test level (unit, service, system) for a given risk. |
+| Emulation Strategy | `references/emulation-strategy.md` | Testcontainers, database emulation, service fakes, when to mock vs emulate. |
+| CDCT Implementation | `references/cdct-implementation.md` | Consumer-driven contract tests, Pact workflows, contract verification. |
+| Trace Validation | `references/trace-validation.md` | Testing observability: trace spans, metrics, structured log assertions. |
+| Frontend Testing | `references/frontend-testing.md` | Component tests, integration tests, accessibility tests, visual regression. |
+| Pipeline Architecture | `references/pipeline-architecture.md` | CI quality gates, test parallelization, pipeline stage design. |
+| Mutation Testing | `references/mutation-testing.md` | Verifying test effectiveness: mutation analysis, fault injection. |
+| Security Testing | `references/security-testing.md` | SAST, DAST, dependency scanning, auth boundary testing. |
+| Risk & Chaos | `references/risk-and-chaos.md` | Chaos engineering, failure injection, resilience validation. |
+| Test Data Management | `references/test-data-management.md` | Fixtures, factories, data generation, test isolation strategies. |
+| Shift-Right Testing | `references/shift-right-testing.md` | Canary analysis, synthetic monitoring, production validation. |
+| AI-Augmented Quality | `references/ai-augmented-quality.md` | AI-assisted test generation, coverage analysis, flake detection. |
+| Architectural Blueprints | `references/architectural-blueprints.md` | Test architecture patterns for different system types. |
+| Worked Examples | `references/worked-examples.md` | Concrete end-to-end testing examples across services. |
 
-## Design Principles
+## Required Wordloop Context
 
-These principles shape every decision this skill makes. Understanding the *why* behind each one makes it possible to apply them intelligently rather than rigidly.
+Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
 
-### Favour Service Tests over Unit Tests
+- `principles/foundations/testing` — Wordloop's testing philosophy, risk-based approach, and fidelity preferences.
+- `guides/run-tests` — Test execution commands across all services.
+- `learn/architecture/observability` — Observability architecture and how testing intersects with it.
 
-The "sociable" Service Test is the foundational unit of validation. Test from the API entry point through to real, ephemeral database containers. Reserve solitary unit tests exclusively for complex, isolated algorithms (parsers, validators, math).
+## Task Routing
 
-**Why:** In microservices, the interesting bugs live at boundaries — HTTP serialization, SQL query correctness, event emission. "Solitary" unit tests mock all of these away, creating tests that pass perfectly while the real system is broken. They also couple tightly to implementation details, breaking on every refactor. Service Tests catch boundary bugs while remaining refactor-resilient because they test behavior through the API, not internal class structure.
+- **New feature test strategy** → Read Testing principle and the relevant service docs. Start from risk assessment, then choose validation levels.
+- **System/integration tests** → Read run-tests guide. Load `references/validation-layers.md` and `references/emulation-strategy.md`.
+- **Contract tests** → Load `references/cdct-implementation.md`. Read API Design and event references for contract shapes.
+- **Observability validation** → Load `references/trace-validation.md`. Read Observability principle.
+- **CI pipeline quality gates** → Load `references/pipeline-architecture.md`. Check existing pipeline configuration.
+- **Flaky test investigation** → Load `references/test-data-management.md` and `references/emulation-strategy.md`. Check test isolation.
+- **Frontend test strategy** → Load `references/frontend-testing.md`. Read app architecture for component boundaries.
+- **Security test strategy** → Load `references/security-testing.md`. Read Security and Privacy principles.
 
-### Emulate, Don't Mock
+## Safety Gates
 
-If a dependency can run in a container (databases, caches, message brokers), emulate it via Testcontainers. In-memory fakes miss critical data-integrity, serialization, and networking issues.
+- Do not rely on shared staging as the only integration confidence path. Staging drifts from production and creates false confidence.
+- Do not add brittle unit tests around implementation details when behavior tests would catch the same risks with less coupling. Implementation-detail tests make refactoring painful.
+- Do not invent test commands; verify `./dev` and package scripts for the actual test runners and flags.
+- Do not mock boundaries that have cheap, high-fidelity alternatives (testcontainers, in-memory databases, service fakes).
+- Run or document the relevant test command for every test strategy recommendation.
 
-**Why:** An in-memory SQLite mock can't catch a PostgreSQL-specific `JSONB` query failure, a `UNIQUE` constraint violation, or a migration that breaks column ordering. A real PostgreSQL container can. The 2-5 second startup cost is worth the confidence gain — these are precisely the bugs that escape to production otherwise.
+## Hallucination Controls
 
-### Validate Traces in System Tests
+Before presenting testing guidance as factual:
 
-System Tests and Live System Tests assert that OpenTelemetry traces are unbroken end-to-end. A missing span or lost TraceID is a test failure, not an instrumentation TODO.
+- Check `./dev test --help` or service-specific test scripts for available test commands and flags.
+- Check existing test files for patterns, naming conventions, and fixture strategies before proposing new ones.
+- Check CI pipeline configuration for actual quality gates and stage ordering.
+- Check test framework versions in package.json / go.mod / pyproject.toml before recommending framework features.
+- Label any recommendation based on general testing knowledge (rather than Wordloop-specific patterns) as an inference.
 
-**Why:** If traces break silently in testing, they'll be broken in production when you need them most — during an incident. Validating traces during testing ensures your observability stack works when it matters. It also catches subtle integration bugs like incorrect context propagation or missing service-to-service headers.
+## Output Expectations
 
-### Name by Behavior, Not Implementation
+- Test strategies start with a risk assessment of the feature or change being tested.
+- Test recommendations specify the validation level (unit, service, system, contract) with a justification for the choice.
+- New test patterns include concrete examples using the project's actual test framework and conventions.
+- Verification steps include specific commands to run tests and interpret results.
+- Recommendations distinguish between Wordloop testing conventions and general testing best practices.
 
-Every test follows BDD naming: `[Function] should [Expected Outcome] when [Condition]`. This ensures failure logs provide immediate diagnostic value.
+## Antipatterns
 
-**Why:** When `TestCreate` fails at 2 AM, the on-call engineer learns nothing. When `CreateMeeting_ShouldReturn409_WhenDuplicateTitle` fails, they immediately know the issue, the expected behavior, and the trigger condition — without reading a single line of test code.
+Reject these patterns:
 
-### Score Risk Before Writing Tests
-
-Score the module using the Risk Matrix (Impact × Complexity × Failure Rate) before deciding test depth. High-risk modules (15–25) require Live System Tests and chaos experiments. Low-risk utilities need only Small tests.
-
-**Why:** Not all code deserves equal testing investment. A payment processing module and a string formatting utility have wildly different risk profiles. Testing both at the same depth either wastes time on low-risk code or under-tests critical paths.
-
-### Reset State Per Suite
-
-Emulator containers are recreated or reset per test suite to maintain determinism. Test pollution from shared state is an architectural defect.
-
-**Why:** Tests that depend on execution order or state left by previous tests are the #1 source of flakiness. A test suite that passes when run alone but fails in CI is almost always a state isolation problem.
-
-## Antipatterns to Avoid
-
-These patterns consistently lead to fragile, expensive, or misleading test suites:
-
-- **"Solitary Unit Testing"** — Mocking every internal class creates extreme coupling to implementation details and produces tests that break on every refactor while catching zero real bugs.
-- **"Staging Hell"** — Shared, long-lived staging environments are the primary source of environment drift, "stepping on toes," and the false confidence of "it works on staging."
-- **"Integrated Tests"** — Tests that depend on the live state of another team's service introduce cross-team coupling. Use Consumer-Driven Contract Tests to decouple teams instead.
-- **"The Ice Cream Cone"** — A suite with minimal Small tests and a massive, slow E2E layer leads to "test-and-wait" culture and pipeline stalls. Push tests down the pyramid.
-- **"100% Code Coverage"** — Line coverage is a vanity metric. Use mutation testing to prove assertion effectiveness — surviving mutants reveal weak assertions that coverage reports hide.
-- **"Fixed Container Ports"** — Hard-coded host ports in Testcontainers cause collisions in parallel CI execution. Dynamic port mapping eliminates this class of failures entirely.
-
-## Output Templates
-
-When designing a test architecture for a service or feature, provide:
-
-1. **Test Type Assignment** — Which types from the Validation Grid apply (Service Test, System Test, Live variants), with rationale.
-2. **Emulation Stack** — Container definitions (Testcontainers, LocalStack, Prism, Ollama) with lifecycle and networking configuration.
-3. **Risk Score** — Module risk assessment (Impact × Complexity × Failure Rate) with recommended test depth.
-4. **Test Structure** — FQN naming scheme, BDD test names, and S/M/L classification.
-5. **Trace Assertions** — OpenTelemetry validation requirements (span counts, parent-child relationships, context propagation). Required for System Tests.
-6. **Contract Boundaries** — CDCT consumer/provider identification with Pact integration points. Required when multiple consumers exist.
-7. **Quality Gates** — Mutation testing thresholds, chaos experiment definitions, and pipeline integration.
-
-For complete output examples showing all 7 sections applied to real features, load `references/worked-examples.md`.
+- **Coverage theater** — Hitting a numeric coverage target with shallow tests that don't exercise meaningful behavior. Coverage measures lines executed, not risks validated.
+- **Mock everything** — Mocking every dependency in every test, creating a test suite that verifies assumptions rather than behavior. Mocks are appropriate for external rate-limited services, not for the database your code depends on.
+- **Implementation-coupled tests** — Tests that break when internal structure changes without behavior changes. Testing private methods, asserting on internal state, or verifying call sequences couples tests to implementation.
+- **Shared mutable state** — Tests that depend on other tests running first, share database state, or fail when run in isolation. Each test should set up and tear down its own world.
+- **Staging as safety net** — Using a shared staging environment as the primary integration confidence mechanism. Staging environments drift, have stale data, and create false confidence.
+- **Test commands from memory** — Recommending test commands without verifying they exist. Framework versions and CLI interfaces change; check before advising.

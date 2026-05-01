@@ -1,0 +1,175 @@
+{
+  "$schema": "./skills-docs-map.schema.json",
+  "version": 1,
+  "description": "Maps maintained agent skills to canonical Wordloop docs pages. Docs hold durable knowledge; skills control execution.",
+  "skills": [
+    {
+      "skill": "api-architect",
+      "source_path": "tools/skill-factory/skills/api-architect/SKILL.md",
+      "consumed_path": ".agents/skills/api-architect/SKILL.md",
+      "canonical_docs": [
+        "principles/system-design/api-design",
+        "principles/system-design/integration-patterns",
+        "principles/ai-native/agent-native-systems",
+        "reference/api/core",
+        "reference/events/core-ws",
+        "reference/events/core-pubsub"
+      ],
+      "secondary_docs": [
+        "guides/add-api-endpoint",
+        "decisions/0005-docs-canonical-skills-execution-layer"
+      ],
+      "owner": "api-platform"
+    },
+    {
+      "skill": "app-engineer",
+      "source_path": "tools/skill-factory/skills/app-engineer/SKILL.md",
+      "consumed_path": ".agents/skills/app-engineer/SKILL.md",
+      "canonical_docs": [
+        "principles/stack/frontend",
+        "learn/services/app/architecture",
+        "learn/services/app/implementation",
+        "learn/services/app/design-guide",
+        "learn/services/app/ux-guide"
+      ],
+      "secondary_docs": [
+        "principles/quality/accessibility",
+        "principles/quality/performance",
+        "principles/system-design/real-time"
+      ],
+      "owner": "app-platform"
+    },
+    {
+      "skill": "core-engineer",
+      "source_path": "tools/skill-factory/skills/core-engineer/SKILL.md",
+      "consumed_path": ".agents/skills/core-engineer/SKILL.md",
+      "canonical_docs": [
+        "principles/stack/go-services",
+        "principles/system-design/hexagonal-architecture",
+        "learn/services/core/architecture",
+        "learn/services/core/implementation"
+      ],
+      "secondary_docs": [
+        "principles/quality/observability",
+        "principles/quality/reliability",
+        "guides/add-api-endpoint"
+      ],
+      "owner": "core-platform"
+    },
+    {
+      "skill": "dev-handbook",
+      "source_path": "tools/skill-factory/skills/dev-handbook/SKILL.md",
+      "consumed_path": ".agents/skills/dev-handbook/SKILL.md",
+      "canonical_docs": [
+        "start/quickstart",
+        "start/first-contribution",
+        "reference/cli",
+        "guides/run-tests",
+        "guides/code-generation",
+        "work"
+      ],
+      "secondary_docs": [
+        "principles/delivery/devex",
+        "operations/troubleshooting"
+      ],
+      "owner": "platform"
+    },
+    {
+      "skill": "ml-engineer",
+      "source_path": "tools/skill-factory/skills/ml-engineer/SKILL.md",
+      "consumed_path": ".agents/skills/ml-engineer/SKILL.md",
+      "canonical_docs": [
+        "principles/stack/ml-systems",
+        "learn/services/ml/architecture",
+        "learn/services/ml/implementation"
+      ],
+      "secondary_docs": [
+        "principles/ai-native/ai-engineering",
+        "principles/quality/observability"
+      ],
+      "owner": "ml-platform"
+    },
+    {
+      "skill": "platform-engineer",
+      "source_path": "tools/skill-factory/skills/platform-engineer/SKILL.md",
+      "consumed_path": ".agents/skills/platform-engineer/SKILL.md",
+      "canonical_docs": [
+        "principles/delivery/platform",
+        "principles/delivery/devex",
+        "principles/delivery/progressive-delivery",
+        "learn/architecture/infrastructure",
+        "learn/architecture/local-infrastructure"
+      ],
+      "secondary_docs": [
+        "principles/quality/observability",
+        "principles/delivery/cost-engineering"
+      ],
+      "owner": "platform"
+    },
+    {
+      "skill": "postgres-designer",
+      "source_path": "tools/skill-factory/skills/postgres-designer/SKILL.md",
+      "consumed_path": ".agents/skills/postgres-designer/SKILL.md",
+      "canonical_docs": [
+        "principles/stack/postgres",
+        "reference/database",
+        "guides/migrate-schema"
+      ],
+      "secondary_docs": [
+        "principles/system-design/data-engineering",
+        "principles/quality/privacy"
+      ],
+      "owner": "data-platform"
+    },
+    {
+      "skill": "real-time-architect",
+      "source_path": "tools/skill-factory/skills/real-time-architect/SKILL.md",
+      "consumed_path": ".agents/skills/real-time-architect/SKILL.md",
+      "canonical_docs": [
+        "principles/system-design/real-time",
+        "principles/system-design/integration-patterns",
+        "reference/events/core-ws",
+        "reference/events/core-pubsub"
+      ],
+      "secondary_docs": [
+        "principles/stack/frontend",
+        "principles/quality/reliability"
+      ],
+      "owner": "realtime-platform"
+    },
+    {
+      "skill": "technical-writer",
+      "source_path": "tools/skill-factory/skills/technical-writer/SKILL.md",
+      "consumed_path": ".agents/skills/technical-writer/SKILL.md",
+      "canonical_docs": [
+        "principles/foundations/documentation",
+        "principles/ai-native/agent-native-systems",
+        "guides/keep-docs-and-skills-in-sync",
+        "guides/correct-documentation-drift",
+        "operations/documentation-freshness",
+        "decisions/0005-docs-canonical-skills-execution-layer"
+      ],
+      "secondary_docs": [
+        "principles/ai-native/ai-engineering",
+        "principles/system-design/api-design",
+        "decisions/0004-hosting-layer-llms-txt-link-header"
+      ],
+      "owner": "docs-platform"
+    },
+    {
+      "skill": "test-architect",
+      "source_path": "tools/skill-factory/skills/test-architect/SKILL.md",
+      "consumed_path": ".agents/skills/test-architect/SKILL.md",
+      "canonical_docs": [
+        "principles/foundations/testing",
+        "guides/run-tests",
+        "learn/architecture/observability"
+      ],
+      "secondary_docs": [
+        "principles/quality/reliability",
+        "principles/quality/security"
+      ],
+      "owner": "quality-platform"
+    }
+  ]
+}

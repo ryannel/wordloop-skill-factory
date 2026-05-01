@@ -1,0 +1,41 @@
+{
+  "skill_name": "app-engineer",
+  "evals": [
+    {
+      "id": "server-client-boundary",
+      "prompt": "I need to build a meeting list page that shows meetings with real-time status indicators (active, ended, processing). The list should support infinite scroll. Where should I draw the server/client boundary and how should I structure the data fetching?",
+      "expected_output": "Recommends a Server Component for initial data fetch with a Client Component for real-time status updates and infinite scroll interaction, with clear justification for the boundary.",
+      "files": [],
+      "assertions": [
+        "Identifies the server/client boundary with justification for what goes where.",
+        "Uses server-side data fetching for the initial list, not useEffect.",
+        "Proposes a client component only for the interactive parts (status updates, scroll handler).",
+        "References Wordloop app architecture patterns or existing conventions."
+      ]
+    },
+    {
+      "id": "form-validation-pattern",
+      "prompt": "We need a form to create a new meeting with title, description, scheduled time, and participant list. The form should validate inputs, show inline errors, and submit via a Server Action. Design the component structure.",
+      "expected_output": "Designs a form with Zod schema validation at the Server Action boundary, client-side progressive enhancement, and structured error handling.",
+      "files": [],
+      "assertions": [
+        "Uses Zod schemas for Server Action input validation.",
+        "Handles both server-side validation errors and client-side progressive enhancement.",
+        "Shows inline error feedback without full page reloads.",
+        "Follows Wordloop design token system for styling (not hardcoded values)."
+      ]
+    },
+    {
+      "id": "accessibility-review",
+      "prompt": "Review this component approach: a custom dropdown menu built with div elements, onClick handlers, and CSS hover states for showing/hiding options. It stores selected value in local state. What accessibility issues exist and how would you fix them?",
+      "expected_output": "Identifies missing keyboard navigation, ARIA attributes, focus management, and screen reader support, with concrete fixes.",
+      "files": [],
+      "assertions": [
+        "Identifies missing keyboard navigation (arrow keys, Enter, Escape).",
+        "Recommends appropriate ARIA roles and attributes (listbox, option, aria-expanded).",
+        "Addresses focus management when opening/closing the dropdown.",
+        "Suggests semantic HTML alternatives or proper ARIA patterns rather than div-based hacks."
+      ]
+    }
+  ]
+}

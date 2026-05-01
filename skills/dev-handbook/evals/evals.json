@@ -1,0 +1,41 @@
+{
+  "skill_name": "dev-handbook",
+  "evals": [
+    {
+      "id": "new-engineer-onboarding",
+      "prompt": "I just cloned the wordloop-platform repo and want to get everything running locally. Walk me through the steps to start all services and verify they're working.",
+      "expected_output": "Routes to quickstart docs, provides concrete ./dev commands, and includes verification steps — without duplicating the full quickstart in the response.",
+      "files": [],
+      "assertions": [
+        "References the quickstart docs or CLI reference rather than inventing setup steps.",
+        "Includes specific ./dev commands (verified or caveated) for starting services.",
+        "Includes a verification step to confirm services are running.",
+        "Mentions prerequisites or environment requirements."
+      ]
+    },
+    {
+      "id": "submodule-workflow",
+      "prompt": "I need to make a change to a file inside the wordloop-docs submodule. How do I do this correctly without causing merge conflicts?",
+      "expected_output": "Explains the upstream-first workflow for submodule changes: commit upstream, then update the submodule pointer in the monorepo.",
+      "files": [],
+      "assertions": [
+        "Identifies that the change must be committed in the submodule's upstream repository first.",
+        "Explains how to update the submodule pointer in the monorepo after the upstream change.",
+        "Warns against treating the submodule directory as an ordinary folder.",
+        "Mentions checking submodule status or using git submodule commands."
+      ]
+    },
+    {
+      "id": "cli-command-discovery",
+      "prompt": "I need to regenerate the API client after changing an OpenAPI spec. What's the right command? Also, how do I run just the Go tests for the core service?",
+      "expected_output": "Provides verified commands or explains how to discover them via ./dev --help, without inventing command names from memory.",
+      "files": [],
+      "assertions": [
+        "Either provides specific ./dev commands or explains how to discover them via --help.",
+        "Does not invent command names without verification.",
+        "References the code generation guide or run-tests guide for authoritative documentation.",
+        "Distinguishes between verified commands and inferred ones."
+      ]
+    }
+  ]
+}

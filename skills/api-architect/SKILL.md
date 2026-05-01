@@ -1,85 +1,114 @@
 ---
 name: api-architect
-description: Use when designing comprehensive API platforms, writing OpenAPI or AsyncAPI specifications, planning Two-Tier Gateway topologies, modeling REST or Event-Driven resources, or enforcing strict lifecycle and security governance. Invoke for API architectures, Kubernetes gateways, Kafka integration, OAuth 2.1 authentication, or optimizing schemas for AI agents.
-license: MIT
-metadata:
-  author: https://github.com/Jeffallan
-  version: "2.0.0"
-  domain: api-architecture
-  triggers: API design, REST API, API specification, API architecture, resource modeling, API versioning, AsyncAPI, OpenAPI, API Gateway, microservices caching, distributed rate limiting, RFC 9457, llms.txt, API governance
-  role: architect
-  scope: design
-  output-format: specification
-  related-skills: graphql-architect, real-time-architect, fastapi-expert, nestjs-expert, devops-engineer, security-reviewer
+description: >
+  Design and review Wordloop API and event contracts using canonical docs,
+  OpenAPI/AsyncAPI sources, agent-readable schemas, and safe lifecycle
+  governance. Use when the user mentions REST APIs, OpenAPI, AsyncAPI,
+  endpoint design, event schemas, versioning, pagination, idempotency,
+  error envelopes, API security, SDK generation, API docs, agent-ready
+  interfaces, webhook design, API gateways, rate limiting, caching strategy,
+  content negotiation, or contract-first development. Make sure to use this
+  skill whenever a user is working on API contracts, HTTP endpoint shapes,
+  event payloads, or integration boundaries, even if they don't explicitly
+  ask for an "API architect."
 ---
 
 # API Architect
 
-You are the definitive guide for designing resilient, scalable, and secure API-native platforms. Your role extends far beyond standard URI modeling—you must help the user architect the required gateway infrastructure, balance multi-tier caching arrays, define strict asynchronous operation contracts, and prepare the ecosystem for high-volume, autonomous AI agent consumption.
+API execution architect for Wordloop contracts. This skill guides contract-first design of REST, WebSocket, and Pub/Sub interfaces with a focus on agent-readability, lifecycle safety, and consistency across Wordloop's integration surface.
 
-## Core Workflow
+## Operating Contract
 
-1. **Topology & Infrastructure Planning** — Define the boundary edge (Two-Tier Gateway vs Service Mesh), caching locations (CDN vs Distributed Redis), and traffic limits (IETF RateLimits).
-2. **Resource & Event Modeling** — Identify domain occurrences. Sketch out synchronous boundaries (REST) vs Event Driven boundaries (Kafka/PubSub).
-3. **Specify the Contracts** — Build strongly typed, machine-readable specifications. Use OpenAPI 3.1 for REST interfaces and AsyncAPI 3.0 for Event streams.
-4. **Resiliency & Validation** — Define caching strategies, idempotent operation keys, and transactional outbox patterns.
-5. **Governance & AI Readiness** — Establish date-based versioning for lifecycle management and expose `llms.txt` and semantic definitions for AI agents.
+1. Start from the contract source of truth (OpenAPI/AsyncAPI specs), not route-code guesses. Contracts define the promise; code implements it.
+2. Keep REST, WebSocket, and Pub/Sub designs consistent with Wordloop API principles — shared error envelopes, consistent naming, stable pagination.
+3. Treat agent-readability as part of API quality: descriptions, examples, constraints, stable errors, and idempotency enable both human developers and AI agents to consume APIs reliably.
+4. Route durable policy to docs; keep this skill focused on contract workflow and verification.
 
-## Reference Guide
+## Core Pillars
 
-Load detailed guidance according to the architectural domain you are analyzing:
+1. **Contract-First Development** — The OpenAPI/AsyncAPI spec is the single source of truth for every endpoint and event. Design the contract before writing handler code. Generated clients, docs, and SDK references flow from the contract, not the reverse. This prevents drift between what the API promises and what it delivers.
+
+2. **Resource-Oriented Design** — Model APIs around domain resources, not RPC actions. Resources have stable identifiers, predictable CRUD semantics, and consistent URL structures. This makes APIs discoverable for both humans and agents and reduces the cognitive load of learning new endpoints.
+
+3. **Lifecycle Safety** — Every API change is either backwards-compatible or follows an explicit versioning and deprecation strategy. Breaking changes go through expand-contract migration. Sunset headers, deprecation notices, and version negotiation protect consumers from surprise breakage.
+
+4. **Agent-Readable Interfaces** — APIs serve two audiences: human developers reading docs and AI agents consuming structured responses. Rich descriptions, typed examples, deterministic error codes, idempotency keys, and machine-parseable pagination make APIs reliable for automated consumption.
+
+5. **Defensive Boundaries** — Every external-facing endpoint validates input, enforces rate limits, requires authentication, and returns structured errors. Treat service-to-service boundaries with similar rigor — internal APIs accumulate consumers quickly and become hard to change.
+
+## How to Use This Skill
+
+Match the user's task to the smallest relevant reference set. Most tasks touch one or two references.
 
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
-| System Topologies | `references/api-topologies.md` | Discussing API Gateways, Edge vs Service Mesh, Multi-tier caching arrays, or Kubernetes Gateway API. |
-| REST & Resources | `references/resource-design.md` | Designing URIs, enforcing The Two-Level Rule, and structuring JSON representations. |
-| HTTP Semantics | `references/http-semantics.md` | Proper method semantics, idempotency keys, standardized status codes, and caching. |
-| Advanced REST | `references/advanced-patterns.md` | Resource expansion, bulk/batch operations, file uploads, and specific operational endpoints. |
-| Pagination | `references/pagination-filtering.md` | Executing cursor-based keyset pagination and standardized query parameter usage. |
-| Security | `references/security.md` | Setting up Zero Trust (OAuth 2.1 PKCE + mTLS), fine-grained authorization, and IETF rate limits. |
-| Error Handling | `references/error-handling.md` | Structuring error responses strictly using the RFC 9457 Problem Details standard. |
-| Async Patterns | `references/async-and-event-patterns.md` | Decoupling limits with `202 Accepted`, Kafka partitioning, or Transactional Outboxes. |
-| Webhooks | `references/webhooks.md` | Designing robust outbox-delivery webhooks with HMAC-SHA256 and at-least-once retries. |
-| OpenAPI Spec | `references/openapi-spec.md` | Writing robust OpenAPI 3.1 definitions, utilizing JSON Schema alignment, and code generation. |
-| Versioning | `references/versioning-lifecycle.md` | Leveraging Date-Based versioning, handling migrations, and configuring Sunset/Deprecation headers. |
-| AI Readiness | `references/ai-agent-readiness.md` | Preparing APIs for autonomous AI agents, semantic operation naming, and `llms.txt` integration. |
+| Resource & URI Design | `references/resource-design.md` | Designing new endpoints, naming resources, structuring URL hierarchies. |
+| HTTP Semantics | `references/http-semantics.md` | Choosing HTTP methods, status codes, content negotiation, conditional requests. |
+| OpenAPI Specification | `references/openapi-spec.md` | Writing or reviewing OpenAPI specs, schema design, component reuse. |
+| Pagination & Filtering | `references/pagination-filtering.md` | Designing list endpoints, cursor vs offset pagination, filter/sort query params. |
+| Error Handling | `references/error-handling.md` | Designing error envelopes, RFC 9457 Problem Details, error code taxonomies. |
+| Versioning & Lifecycle | `references/versioning-lifecycle.md` | API versioning strategy, deprecation, sunset headers, breaking change policy. |
+| Security | `references/security.md` | Auth patterns, OAuth 2.1, API keys, rate limiting, CORS, input validation. |
+| Webhooks | `references/webhooks.md` | Webhook contracts, delivery guarantees, retry policies, payload signing. |
+| Async & Event Patterns | `references/async-and-event-patterns.md` | AsyncAPI contracts, Pub/Sub event design, event naming, payload schemas. |
+| API Topologies | `references/api-topologies.md` | Gateway patterns, BFF, service mesh, multi-tier routing, load balancing. |
+| AI Agent Readiness | `references/ai-agent-readiness.md` | Making APIs consumable by AI agents, description quality, deterministic responses. |
+| Advanced Patterns | `references/advanced-patterns.md` | HATEOAS, bulk operations, long-running operations, ETags, content negotiation. |
 
-## Constraints
+## Required Wordloop Context
 
-### MUST DO
-- **Treat Design like a Product:** Contracts must be governed in CI/CD before any implementation starts.
-- **Enforce Traceability:** Require OpenTelemetry `traceparent` metadata in HTTP headers and Event envelopes.
-- **Normalize Errors:** You must use RFC 9457 `application/problem+json` for every error type payload.
-- **Protect the Backend:** Rate limits are non-negotiable. Expose `RateLimit` HTTP headers back to the client.
+Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
 
-### MUST NOT DO
-- **Deep Nesting Failure:** Never nest REST resources beyond two layers (e.g. Avoid `/customers/1/orders/99/products`). Use relationships and hybrid architectures.
-- **Implicit Schema Changes:** Do not silently adjust endpoints. Make non-breaking schema updates and use Date-Based Versioning for evolution.
-- **Sync/Async Confusion:** Do not use `GET` to check the status of a synchronous POST that is slow; use the Async Request-Reply pattern (`202 Accepted` returning a `Location` header).
+- `principles/system-design/api-design` — Wordloop's API design philosophy and standards.
+- `principles/system-design/integration-patterns` — How services communicate across boundaries.
+- `principles/ai-native/agent-native-systems` — Agent-readability requirements for all interfaces.
+- `reference/api/core` — Generated Core API reference (source of truth for existing endpoints).
+- `reference/events/core-ws` — WebSocket event reference.
+- `reference/events/core-pubsub` — Pub/Sub event reference.
 
-## Output Templates
+## Task Routing
 
-When providing REST definitions or templates, use the standardized RFC 9457 schema:
+- **New REST endpoint** → Read API Design principle and Core API reference. Design the contract first, then implement the handler.
+- **WebSocket/Pub/Sub work** → Read Integration Patterns plus the relevant event reference. Check AsyncAPI specs.
+- **SDK/docs generation** → Read code-generation guide. Verify generated outputs match the contract.
+- **Error handling changes** → Load `references/error-handling.md`. Ensure RFC 9457 compliance and consistency with the shared error envelope.
+- **Pagination/filtering** → Load `references/pagination-filtering.md`. Check consistency with existing list endpoints.
+- **Security-sensitive changes** → Load `references/security.md`. Include Security and Privacy principles in review.
+- **Versioning decisions** → Load `references/versioning-lifecycle.md`. Assess breaking change impact and migration plan.
 
-### RFC 9457 Error Response (copy-paste)
-```json
-{
-  "type": "https://api.example.com/errors/validation-error",
-  "title": "Validation Error",
-  "status": 422,
-  "detail": "The 'email' field must be a valid email address.",
-  "instance": "/users/req-abc123",
-  "errors": [
-    { "field": "email", "message": "Must be a valid email address." }
-  ]
-}
-```
-* **Note**: Always use `Content-Type: application/problem+json`. The `type` must be an absolute URI, and `errors` array provides granular field checking.
+## Safety Gates
 
-## Output Checklist
-When validating a full API design delivery, ensure:
-1. System topology is defined (Gateway/Cache placement).
-2. Resource URIs use hybrid/flat pluralization.
-3. Errors adhere strictly to RFC 9457.
-4. IETF RateLimit headers are defined.
-5. All definitions validate properly under `npx @redocly/cli lint`.
+- Do not invent endpoint paths, event names, or fields without checking OpenAPI/AsyncAPI specs or source code. Guessing at API shapes leads to contract drift.
+- Do not manually edit generated reference docs; update the source contract and regenerate. Generated docs are downstream artifacts.
+- Run `./dev gen api` or the relevant generation target when contracts change.
+- Run `./dev docs health` after docs or contract reference updates.
+- Do not introduce breaking changes without an expand-contract migration plan and consumer impact assessment.
+
+## Hallucination Controls
+
+Before presenting API guidance as factual:
+
+- Check OpenAPI/AsyncAPI specs for endpoint paths, methods, status codes, and field names.
+- Check source code for actual handler implementations when specs are ambiguous.
+- Check `./dev gen --help` for available generation commands rather than guessing.
+- Check existing endpoints for naming and pagination conventions before proposing new patterns.
+- Label any recommendation not grounded in specs or code as an inference.
+
+## Output Expectations
+
+- Contract changes include both the OpenAPI/AsyncAPI diff and the implementation plan.
+- New endpoints follow existing naming, error, and pagination conventions unless the deviation is justified.
+- Generated references, SDK clients, and docs are regenerated after contract changes.
+- Verification steps include specific commands to run and files to check.
+- Recommendations distinguish between Wordloop conventions, general best practices, and inferences.
+
+## Antipatterns
+
+Reject these patterns:
+
+- **Code-first API design** — Writing handlers before the contract leads to accidental API surfaces that are hard to change later.
+- **Snowflake error formats** — Each endpoint inventing its own error structure instead of using the shared error envelope.
+- **Undocumented pagination** — List endpoints that return unbounded results or use inconsistent cursor/offset schemes.
+- **Version in URL without strategy** — Adding `/v2/` without a deprecation timeline or migration plan for `/v1/`.
+- **Auth afterthought** — Designing the happy path first and bolting on security later, leading to inconsistent enforcement.
+- **Manual reference editing** — Hand-writing API reference tables that should be generated from contracts.

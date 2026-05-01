@@ -1,0 +1,41 @@
+{
+  "skill_name": "ml-engineer",
+  "evals": [
+    {
+      "id": "provider-isolation",
+      "prompt": "I need to add a new embedding model provider (Voyage AI) alongside the existing one. The service layer calls the embedding provider to generate vectors for transcript search. Design the provider adapter so we can swap between providers without changing service code.",
+      "expected_output": "Defines a clean interface in the gateway layer, implements the Voyage adapter in the provider layer, and keeps SDK types out of the service layer.",
+      "files": [],
+      "assertions": [
+        "Defines an embedding provider interface in the gateway/port layer with domain types.",
+        "Implements the Voyage adapter in the provider layer behind that interface.",
+        "Does not leak Voyage SDK types into the service or domain layers.",
+        "Addresses configuration (model selection, API keys) without hardcoding values."
+      ]
+    },
+    {
+      "id": "model-output-validation",
+      "prompt": "Our transcription pipeline sometimes gets back segments with confidence scores below 0.3 and empty speaker labels. Currently the service just passes these through to the database. Design a validation boundary between the transcription provider and the service layer.",
+      "expected_output": "Defines typed data contracts at the provider boundary with explicit validation for confidence thresholds and required fields.",
+      "files": [],
+      "assertions": [
+        "Defines explicit data contracts (Pydantic models or dataclasses) for transcript segments.",
+        "Validates confidence scores against a configurable threshold at the boundary.",
+        "Handles invalid segments explicitly (filter, flag, or reject) rather than silently passing them.",
+        "Keeps validation logic at the provider-to-service boundary, not scattered through the pipeline."
+      ]
+    },
+    {
+      "id": "resilient-inference",
+      "prompt": "The LLM summarization step in our pipeline occasionally times out (30+ seconds) or returns 503 errors from the upstream API. Users see a generic 'processing failed' error. How should we make this pipeline step resilient?",
+      "expected_output": "Designs resilience patterns including timeouts, circuit breakers, retries with backoff, and graceful degradation with observable failure modes.",
+      "files": [],
+      "assertions": [
+        "Adds explicit timeout configuration for the LLM inference call.",
+        "Implements retry logic with backoff for transient errors (503).",
+        "Recommends circuit breaker pattern to prevent cascading failures.",
+        "Includes observability (structured logging, metrics) for inference failures so they are actionable."
+      ]
+    }
+  ]
+}

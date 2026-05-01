@@ -1,0 +1,41 @@
+{
+  "skill_name": "platform-engineer",
+  "evals": [
+    {
+      "id": "golden-path-design",
+      "prompt": "Engineers are manually deploying the ML service by SSH-ing into a server, pulling the latest image, and restarting the container. This has caused two incidents in the past month from forgotten config changes. Design a Golden Path deployment workflow.",
+      "expected_output": "Replaces the manual process with an automated ./dev deploy workflow, CI/CD pipeline, and progressive rollout with health checks.",
+      "files": [],
+      "assertions": [
+        "Proposes an automated deployment path that eliminates the manual SSH workflow.",
+        "Includes health checks and rollback capability in the deployment process.",
+        "Integrates with the ./dev CLI or CI/CD pipeline rather than creating a one-off script.",
+        "Addresses the configuration management issue that caused the incidents."
+      ]
+    },
+    {
+      "id": "observability-gap",
+      "prompt": "The on-call engineer got paged for high latency on the Core API but couldn't figure out what was slow. They had to read source code and add temporary logging to find the issue (a slow database query). What observability improvements would prevent this?",
+      "expected_output": "Recommends structured tracing with span-level latency, database query metrics, and dashboards that enable diagnosis without code reading.",
+      "files": [],
+      "assertions": [
+        "Recommends distributed tracing with spans that cover the request path including database calls.",
+        "Suggests database query metrics or slow query logging as a standard platform capability.",
+        "Proposes dashboards or alerting that surface latency breakdowns without requiring code access.",
+        "Frames this as a platform-level improvement (available to all services) rather than a one-off fix."
+      ]
+    },
+    {
+      "id": "infrastructure-review",
+      "prompt": "A teammate wants to add a Redis cache for meeting data by creating the instance manually in the GCP console, then hardcoding the connection string in the app's environment variables. Review this approach.",
+      "expected_output": "Identifies the console-only resource and hardcoded config as antipatterns, recommends Terraform and configuration management.",
+      "files": [],
+      "assertions": [
+        "Identifies the console-only resource creation as an antipattern (not reproducible, not reviewable).",
+        "Recommends defining the Redis instance in Terraform or infrastructure-as-code.",
+        "Recommends managing the connection string through proper configuration (not hardcoded env vars).",
+        "Mentions the need for the resource to exist in version-controlled infrastructure definitions."
+      ]
+    }
+  ]
+}

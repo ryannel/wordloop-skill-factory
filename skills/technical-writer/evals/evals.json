@@ -1,0 +1,41 @@
+{
+  "skill_name": "technical-writer",
+  "evals": [
+    {
+      "id": "diataxis-placement",
+      "prompt": "I need to write documentation for our new migration workflow. It should explain what migrations are, show how to create and run one, document the CLI flags, and walk a new engineer through their first migration. How should I organize this across pages?",
+      "expected_output": "Applies Diátaxis to separate the content into distinct page types: tutorial (first migration walkthrough), how-to (create and run), reference (CLI flags), and explanation (what migrations are and why).",
+      "files": [],
+      "assertions": [
+        "Identifies distinct Diátaxis categories for the different content types.",
+        "Separates the tutorial (learning-oriented walkthrough) from the how-to guide (task-oriented steps).",
+        "Places CLI flags in a reference page, not mixed into the tutorial or how-to.",
+        "Explains why mixing the categories weakens each page for its intended audience."
+      ]
+    },
+    {
+      "id": "docs-skills-boundary",
+      "prompt": "A teammate added a detailed section to the core-engineer SKILL.md explaining Wordloop's hexagonal architecture layers, dependency rules, and package structure. It's accurate and well-written. Should this content live in the skill? Review the placement.",
+      "expected_output": "Identifies this as durable engineering knowledge that belongs in canonical docs, not in a skill. The skill should route to the docs page, not duplicate it.",
+      "files": [],
+      "assertions": [
+        "Identifies the content as durable engineering knowledge, not execution logic.",
+        "Recommends moving the content to canonical docs and having the skill route to it.",
+        "References the docs/skills boundary principle or ADR 0005.",
+        "Explains the maintenance and drift risk of duplicating knowledge in skills."
+      ]
+    },
+    {
+      "id": "drift-correction-workflow",
+      "prompt": "The database reference page says the meetings table has a 'status' column of type VARCHAR, but the actual schema shows it's an enum type. The core-engineer skill mentions it as a string field. How do you triage and fix this three-way drift?",
+      "expected_output": "Establishes the actual schema as source of truth, updates the generated reference, updates the skill routing, and adds a guard against recurrence.",
+      "files": [],
+      "assertions": [
+        "Identifies the actual database schema as the source of truth.",
+        "Updates the generated reference from the schema (not by hand-editing the docs page).",
+        "Updates or removes the incorrect claim in the skill.",
+        "Recommends a generation or health check step that would catch this drift in the future."
+      ]
+    }
+  ]
+}

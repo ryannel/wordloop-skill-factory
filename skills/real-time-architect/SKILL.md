@@ -1,110 +1,113 @@
 ---
 name: real-time-architect
-description: Use when architecting, designing, or implementing real-time data APIs, persistent messaging, or asynchronous communication systems. Make sure to use this skill whenever a user mentions Server-Sent Events (SSE), WebSockets, WebTransport, QUIC, Pub/Sub, Kafka, real-time fan-outs, Streamable HTTP, Socket.IO, optimistic UI, optimistic updates, echo suppression, source-aware events, real-time sync, multi-device synchronization, or wants to design a system with long-lived streaming connections, persistent state, or low-latency CRUD with live updates, even if they don't explicitly ask for an 'architect' or 'real-time design'.
-license: MIT
-metadata:
-  author: https://github.com/Jeffallan
-  version: "3.0.0"
-  domain: api-architecture
-  triggers: Server-Sent Events, SSE, WebSockets, WebTransport, QUIC, Pub/Sub, Kafka, real-time communication, bidirectional messaging, live updates, streamable HTTP, Socket.IO, presence tracking, optimistic UI, optimistic updates, echo suppression, source-aware events, real-time sync, multi-device sync, client ID, last-write-wins, event replay, gRPC streaming, GraphQL subscriptions, CRDTs, CloudEvents, AsyncAPI
-  role: architect
-  scope: implementation
-  output-format: markdown
-  related-skills: fastapi-expert, nestjs-expert, devops-engineer, monitoring-expert, security-reviewer
+description: >
+  Architect and review Wordloop real-time systems using canonical real-time,
+  integration, event-reference, and frontend docs. Use for WebSockets, SSE,
+  WebTransport, Pub/Sub, Kafka, optimistic UI, echo suppression, source-
+  aware events, multi-device sync, event replay, fan-out, backplanes, live
+  updates, CRDTs, CloudEvents, distributed tracing for events, idempotency,
+  backpressure, graceful draining, or real-time security. Make sure to use
+  this skill whenever a user is working on streaming, evented communication,
+  live data synchronization, or real-time protocol decisions, even if they
+  don't explicitly ask for a "real-time architect."
 ---
 
-# Real-Time System Architect
+# Real-Time Architect
 
-You are the definitive guide for designing and operating persistent, asynchronous, and high-throughput real-time systems. Your role goes beyond simple HTTP API surfaces; you must help the user architect the underlying infrastructure, select the data architecture pattern that fits their requirements, manage persistent sockets securely, handle message fan-outs at scale, and guarantee data consistency across global regions.
+Real-time execution architect for streaming and evented systems. This skill guides protocol selection, event contract design, state synchronization, and resilience patterns — choosing the simplest approach that meets consistency and latency requirements.
 
-## Core Workflow
+## Operating Contract
 
-### Step 1: Select Data Architecture Pattern
+1. Choose the simplest real-time pattern that satisfies consistency and latency needs. SSE before WebSockets. WebSockets before WebTransport. Source-aware streaming before CRDTs. Complexity is justified only by concrete requirements.
+2. Use AsyncAPI/event references as the source of truth for event names and payloads. Events are contracts — treat them with the same rigor as REST APIs.
+3. Design echo suppression, idempotency, replay, and failure recovery explicitly. These are not edge cases; they are core to correctness in distributed real-time systems.
+4. Keep protocol policy in docs and use this skill for routing and verification.
 
-Before choosing a protocol, determine which macro data architecture fits the requirements. Load `references/system-design.md` and walk the decision flowchart:
+## Core Pillars
 
-| Pattern | When to Use |
-|---------|-------------|
-| **Direct Request/Response** | Simple CRUD, no live updates, single client |
-| **Optimistic Mutation + Echo-Suppressed Streaming** | Entity CRUD with multi-device/multi-tab sync (most apps) |
-| **Event-Driven Pub/Sub** | Decoupled services, async workflows, notifications |
-| **Kappa (Unified Streaming)** | Event sourcing, full replay, real-time materialized views |
-| **Lambda (Batch + Speed)** | ML pipelines, historical analytics + live views |
+1. **Simplest Protocol That Fits** — Real-time has a complexity ladder: polling → SSE → WebSockets → WebTransport → custom protocols. Start at the simplest rung that meets the actual requirements. SSE handles most read-only streaming. WebSockets add bidirectionality. WebTransport adds multiplexed streams. Moving up the ladder increases implementation, debugging, and operational cost. The temptation to reach for the most powerful tool is strong; resist it unless the requirements demand it.
 
-> **Default recommendation:** For entity-level CRUD applications requiring low-latency, multi-device synchronization, recommend **Optimistic Mutation with Echo-Suppressed Streaming** before considering event sourcing or CRDTs. This is the canonical design for Wordloop and most SaaS products. Load `references/optimistic-echo-suppression.md` for the full edge-case reference.
+2. **Events as Contracts** — Every event has a name, a versioned schema, delivery semantics, and ordering guarantees. AsyncAPI specs define these contracts the same way OpenAPI defines REST. Event names, payload shapes, and topic structures are not implementation details — they are public interfaces that consumers depend on. Changing them requires the same lifecycle rigor as changing an API.
 
-### Step 2: Select Transport Protocol
+3. **Source-Aware State Sync** — The server is the source of truth. Clients apply optimistic updates for responsiveness, then reconcile with server-confirmed state. Echo suppression prevents the user's own mutation from appearing twice. Source-aware events carry enough metadata (origin ID, sequence number, timestamp) for clients to merge server state without conflict. This pattern handles the vast majority of collaborative scenarios without CRDTs.
 
-Assess the data flow direction, latency requirements, and browser support:
+4. **Resilience by Design** — Network interruptions are not exceptional; they are routine. Every real-time connection needs explicit reconnection logic, event replay from a known position, duplicate detection via idempotency keys, and graceful degradation when the backplane is unavailable. These mechanisms are designed upfront, not patched in after the first production outage.
 
-- **SSE** — Unidirectional server push (notifications, AI token streaming, live feeds)
-- **WebSocket** — Bidirectional (chat, real-time CRUD sync, collaborative editing)
-- **WebTransport** — Ultra-low-latency, stream isolation, unreliable datagrams (gaming, HFT)
-- **gRPC Streaming** — Service-to-service only (type-safe, high-throughput, never browser-facing)
-- **GraphQL Subscriptions** — Client-facing with flexible data shapes (aggregating multiple backends)
+5. **Observable Event Flow** — Distributed event systems are hard to debug without end-to-end tracing. Every event carries a correlation ID. Producers, brokers, and consumers emit trace spans. Dead-letter queues capture unprocessable events for inspection. Backpressure and fan-out metrics are monitored. When an event goes missing, the traces should reveal where it was lost.
 
-Load `references/protocols.md` for transport-specific implementation details.
+## How to Use This Skill
 
-### Step 3: Design Contracts & Payloads
-
-Standardize message envelopes using CloudEvents, define AsyncAPI 3.0 specifications, and plan schema evolution strategy.
-
-### Step 4: Implement Resiliency & Scaling
-
-Design for continuous failure: exponential backoff with jitter, graceful pod draining, sticky sessions, rate limiting, horizontal scaling via Redis adapter, and custom HPA metrics based on connection count.
-
-### Step 5: Instrument Observability
-
-Traditional HTTP golden signals do not apply. Instrument stream-specific metrics: handshake TTFB, message processing latency, connection drop rate, event loop lag, and backplane queue depth.
-
-### Step 6: Validate
-
-Test connection lifecycle (handshake, reconnection, graceful shutdown), run consumer-driven contract tests, and verify under load with k6 WebSocket scenarios.
-
-## Reference Guide
-
-Load detailed guidance according to the architectural domain you are analyzing:
+Match the user's task to the smallest relevant reference set. Most tasks touch one or two references.
 
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
-| **Data Architecture** | `references/system-design.md` | Choosing between data architecture patterns (request/response, optimistic mutation, pub/sub, Kappa, Lambda), designing targeted fan-out topologies, or evaluating trade-offs. |
-| **Optimistic Echo Suppression** | `references/optimistic-echo-suppression.md` | Designing real-time CRUD apps with multi-device sync. Covers REST writes, WebSocket reads, optimistic UI, echo suppression, reconnection with event replay, debounce/coalesce, auth lifecycle, and implementation checklists. The go-to reference for entity-based real-time applications. |
-| **Transport Protocols** | `references/protocols.md` | Deciding between SSE, WebSocket, WebTransport, MCP Streamable HTTP. Implementation details, benchmarks, migration paths, Node.js clustering, and Socket.IO configuration. |
-| **Client Patterns** | `references/client.md` | Implementing offline queues, optimistic UI hooks, reconnection strategies (exponential backoff with jitter), type-safe event systems, SDK generation, or runtime Zod validation. |
-| **Resiliency & Scaling** | `references/resiliency.md` | Rate limiting (GCRA), thundering herd mitigation, graceful Kubernetes pod draining, backpressure, circuit breakers, dead-letter queues, Redis adapter, sticky sessions, HPA. |
-| **Security** | `references/security.md` | Authentication (JWT handshake, session cookies), room-based authorization (BOLA mitigation), input validation, CORS, and secure token refresh lifecycle. |
-| **Observability & Tracing** | `references/observability.md` | W3C trace context propagation in streams, redefined golden signals for persistent connections, OpenTelemetry integration, connection metrics, alert thresholds, audit logging. |
-| **Contracts & Governance** | `references/contracts.md` | AsyncAPI 3.0 specification, CloudEvents envelope (structured + SSE modes), schema evolution (backward/forward compatibility), schema registry enforcement. |
-| **Implementation Patterns** | `references/patterns.md` | Socket.IO Rooms, namespaces, broadcasting, acknowledgments, presence tracking implementation, pub/sub patterns, and message queue patterns. |
-| **Multi-Region State** | `references/state.md` | Edge termination (Anycast), session handoff across regions, CRDTs for conflict resolution (G-Counter, PN-Counter, OR-Set, RGA/Yjs), multi-region Kafka backplane. |
-| **gRPC & GraphQL** | `references/grpc-graphql.md` | gRPC bidirectional streaming (Go + Node.js), GraphQL subscriptions with Redis Pub/Sub, DataLoader batching, query complexity limiting, persisted queries. |
-| **Serialization** | `references/serialization.md` | Wire format selection (JSON, Protobuf, FlatBuffers, MessagePack), WebSocket compression (`permessage-deflate`), binary data handling, AI pipeline economics. |
-| **Testing & Validation** | `references/testing.md` | AsyncAPI contract testing (Specmatic), connection lifecycle tests, k6 WebSocket load tests, consumer-driven contracts (Pact), CI/CD schema validation. |
-| **AI & MCP Integration** | `references/mcp.md` | MCP architecture (resources, tools, prompts), transport selection (stdio, SSE, WebTransport), agent security (least privilege, rate limiting), schema validation & injection prevention. |
+| Protocol Selection | `references/protocols.md` | Choosing between SSE, WebSockets, WebTransport, or polling. |
+| System Design | `references/system-design.md` | Architecting real-time data flow, topology, scaling, and backplane design. |
+| Patterns | `references/patterns.md` | Common real-time patterns: fan-out, pub/sub, request-reply, event sourcing. |
+| Optimistic UI & Echo Suppression | `references/optimistic-echo-suppression.md` | Client-side optimistic updates, server reconciliation, echo filtering. |
+| State Management | `references/state.md` | Distributed state, CRDTs, sequence numbers, conflict resolution. |
+| Event Contracts | `references/contracts.md` | AsyncAPI specs, CloudEvents envelope, event naming, versioning. |
+| Serialization | `references/serialization.md` | Payload formats (JSON, Protobuf, MessagePack), schema evolution. |
+| Resiliency | `references/resiliency.md` | Reconnection, replay, idempotency, backpressure, graceful draining. |
+| Observability | `references/observability.md` | Distributed tracing for events, correlation IDs, dead-letter monitoring. |
+| Security | `references/security.md` | Auth for persistent connections, token refresh, channel authorization. |
+| Client Patterns | `references/client.md` | Frontend WebSocket management, connection lifecycle, state hooks. |
+| MCP Integration | `references/mcp.md` | Real-time patterns for MCP tool/resource interactions. |
+| gRPC & GraphQL | `references/grpc-graphql.md` | gRPC streaming, GraphQL subscriptions, protocol-specific patterns. |
+| Testing | `references/testing.md` | Testing real-time systems: connection lifecycle, event ordering, failure modes. |
 
-## Constraints
+## Required Wordloop Context
 
-### MUST DO
-- **Walk the Decision Flowchart:** Always evaluate the 5-pattern decision framework before recommending an architecture. Do not jump to infrastructure choices without understanding latency, reprocessing, and multi-device requirements.
-- **Treat State Cautiously:** Persistent connections are stateful at the transport layer. Mandate Layer 4 load balancing or Anycast Edge routing over traditional Round-Robin (or sticky sessions for Socket.IO compatibility).
-- **Trace the Streams:** Require OpenTelemetry `traceparent` context sharing inside the message payload envelope itself.
-- **Explain the "Why":** Rather than just demanding a protocol, explain *why* (e.g., "WebTransport mitigates Head-of-Line blocking because QUIC multiplexes streams over UDP").
-- **Queue Messages on Disconnect:** Implement offline queues for reconnection windows to avoid silent data loss in client implementations.
+Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
 
-### MUST NOT DO
-- **No Global Broadcasts:** For massive scale, do not scale by blasting every message to every pod via a global Redis Pub/Sub if $O(N^2)$ storms are possible. Use targeted Unicast.
-- **Do Not Buffer Streams:** Do not allow standard API Gateways or proxies (like NGINX) to buffer streaming responses, as this breaks real-time SSE delivery. Ensure `X-Accel-Buffering: no` or equivalent configuration.
-- **Match Complexity to Requirements:** Do not default to event sourcing or Kappa architecture when simpler patterns (direct request/response, optimistic mutation) satisfy the latency and reprocessing requirements. Over-engineering the data layer creates unnecessary operational burden.
+- `principles/system-design/real-time` — Wordloop's real-time design philosophy and pattern selection guidance.
+- `principles/system-design/integration-patterns` — Service-to-service communication patterns.
+- `reference/events/core-ws` — WebSocket event reference (source of truth for WS event names and payloads).
+- `reference/events/core-pubsub` — Pub/Sub event reference (source of truth for async event names and payloads).
 
-## Output Templates
+## Task Routing
 
-When implementing a real-time feature, provide:
-1. Data architecture pattern justification (which of the 5 patterns and why)
-2. Server setup (Socket.IO/ws/SSE configuration)
-3. Event handlers (connection, message, disconnect)
-4. Client library usage (connection, events, exponential backoff reconnection)
-5. Brief explanation of scaling strategy
+- **Entity live sync** → Prefer optimistic mutation plus echo-suppressed streaming unless requirements prove otherwise. Load `references/optimistic-echo-suppression.md`.
+- **Service async workflow** → Read Integration Patterns and Pub/Sub reference. Load `references/patterns.md`.
+- **Frontend live UI** → Read Frontend principle and app docs. Load `references/client.md` for connection management.
+- **Protocol selection** → Load `references/protocols.md`. Start from requirements (latency, directionality, multiplexing) and choose the simplest fit.
+- **Backplane/replay work** → Read Real-Time and Reliability principles. Load `references/resiliency.md` and `references/system-design.md`.
+- **Event contract design** → Load `references/contracts.md`. Check AsyncAPI specs for existing event conventions.
+- **Scaling/fan-out** → Load `references/system-design.md`. Check current backplane architecture and capacity.
 
-## Knowledge Reference
+## Safety Gates
 
-Server-Sent Events (SSE), WebTransport, QUIC, CloudEvents, AsyncAPI 3.0, Conflict-Free Replicated Data Types (CRDTs), Event-Driven Architecture, Kappa Architecture, Apache Kafka, Socket.IO, ws, uWebSockets.js, Redis adapter, sticky sessions, JWT over WebSocket, namespaces, backpressure, horizontal pod autoscaling, optimistic UI, echo suppression, source-aware events, client ID, mutation ID, debounce, coalesce, last-write-wins, SWR revalidation, exponential backoff, event replay buffer, gRPC bidirectional streaming, GraphQL subscriptions, Protobuf, FlatBuffers, Pact consumer-driven contracts, Specmatic, k6 load testing, MCP resources/tools/prompts, Streamable HTTP.
+- Do not invent event names or payloads without checking AsyncAPI specs or source code. Events are contracts.
+- Do not recommend CRDTs or event sourcing when simpler source-aware streaming satisfies the consistency requirements. Complexity has operational cost.
+- Do not omit reconnection, replay, and duplicate handling from any real-time design. These are correctness requirements, not nice-to-haves.
+- Do not design persistent connections without authentication, token refresh, and channel authorization.
+- Run contract and docs health checks after event-doc changes.
+
+## Hallucination Controls
+
+Before presenting real-time guidance as factual:
+
+- Check AsyncAPI specs for event names, payload schemas, and topic structures.
+- Check source code for actual WebSocket/Pub/Sub implementations and connection patterns.
+- Check the backplane architecture before making scaling or fan-out claims.
+- Check existing client code for connection management patterns before proposing new ones.
+- Label any recommendation based on general real-time knowledge (rather than Wordloop-specific patterns) as an inference.
+
+## Output Expectations
+
+- Protocol decisions include a justification based on actual requirements (latency, directionality, ordering, scale).
+- Event designs include AsyncAPI contract changes, not just prose descriptions.
+- Real-time features include explicit handling for reconnection, replay, echo suppression, and failure modes.
+- Verification steps include specific commands for testing connection lifecycle and event delivery.
+- Recommendations distinguish between Wordloop real-time conventions and general distributed systems practices.
+
+## Antipatterns
+
+Reject these patterns:
+
+- **WebSocket by default** — Reaching for WebSockets when SSE would suffice. WebSockets add bidirectionality, connection management complexity, and proxy/load-balancer concerns. Use them when you need bidirectional communication.
+- **Optimism without reconciliation** — Applying optimistic UI updates without server-confirmed reconciliation and rollback. Optimistic updates are a UX technique, not a data consistency strategy.
+- **Fire-and-forget events** — Publishing events without delivery guarantees, retry logic, or dead-letter handling. Events that silently disappear are worse than events that fail loudly.
+- **CRDT overkill** — Adopting conflict-free replicated data types for problems that don't have concurrent writes from multiple sources. CRDTs add conceptual and operational complexity; source-aware streaming handles most single-writer scenarios.
+- **Reconnect and pray** — Reconnecting a WebSocket without replaying missed events from a known sequence position. The gap between disconnect and reconnect is where data gets lost.
+- **Undocumented event contracts** — Adding events without AsyncAPI specs, treating event schemas as internal implementation details that consumers shouldn't depend on.

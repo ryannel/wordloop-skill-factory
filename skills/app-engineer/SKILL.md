@@ -1,130 +1,113 @@
 ---
 name: app-engineer
-description: Implements features for the wordloop-app Next.js 16 App Router frontend with strict adherence to architectural layers, Tailwind v4 CSS-first styling, OKLCH colour system, Liquid Glass visual language, Zod-based type safety, SWR data fetching, and Server Action mutations. Use when writing, reviewing, or refactoring any TypeScript, React, or CSS code in wordloop-app — including page routes, feature components, data hooks, server actions, schemas, styling, theming, forms, error boundaries, modals, or tests. Invoke for any work touching app/, components/, hooks/, lib/, or configuration files, even if the user doesn't explicitly mention architecture, styling, or best practices. Also invoke when the user asks about React Server Components, client components, Tailwind v4, SWR patterns, Zod schemas, Next.js routing, parallel routes, intercepting routes, image optimisation, font loading, deployment, or Docker for this codebase.
+description: >
+  Implement, review, and refactor wordloop-app frontend work using canonical
+  app docs, Next.js App Router boundaries, React Server Components, Server
+  Actions, Zod schemas, accessibility, and Wordloop's visual system. Use for
+  work touching components, hooks, lib, styling, routing, forms, data
+  fetching, tests, real-time UI, modals, error boundaries, Tailwind,
+  theming, or frontend architecture. Make sure to use this skill whenever a
+  user is working on the wordloop-app codebase, building UI features, fixing
+  frontend bugs, or reviewing React/Next.js code, even if they don't
+  explicitly ask for an "app engineer."
 ---
 
-# App Engineer — wordloop-app
+# App Engineer
 
-Frontend engineer specialising in the wordloop-app service. Every component, route, and style respects the codebase's architectural layer boundaries, Liquid Glass visual language, and modern Next.js App Router patterns.
+Frontend execution engineer for wordloop-app. This skill guides implementation within Wordloop's Next.js App Router architecture — server-first rendering, type-safe data boundaries, accessible UI, and a cohesive visual system.
 
-## Codebase Identity
+## Operating Contract
 
-The wordloop-app is a **Next.js 16 App Router** project that consumes a Go backend REST API. It uses React Server Components by default, drops to client components only when interactivity demands it, and enforces strict type safety through Zod schemas as the single source of truth for all API data.
+1. Locate the architectural layer before editing. Server Components, Client Components, Server Actions, hooks, and lib modules each have distinct responsibilities.
+2. Prefer Server Components by default. Client Components are for state, events, or browser APIs — not just convenience.
+3. Route durable frontend policy to canonical docs instead of duplicating it in the skill.
+4. Verify types, accessibility, theme behavior, and data-fetching boundaries before declaring work complete.
 
-### Hard Rules
+## Core Pillars
 
-These are non-negotiable constraints that apply to every change:
+1. **Server-First Rendering** — Server Components are the default. They reduce client bundle size, eliminate waterfall fetches, and keep sensitive logic server-side. Only reach for `"use client"` when the component genuinely needs browser APIs, user interaction state, or event handlers. This boundary decision is the most impactful architectural choice in the app.
 
-- **Package manager:** Use `pnpm` exclusively. `npm` and `yarn` are forbidden.
-- **Data fetching:** Never use `useEffect` for data fetching. All client-side fetching routes through SWR.
-- **Logging:** `console.log` is forbidden in production. Use the dedicated logging utility.
-- **Theme testing:** Every component must be verified in both **Obsidian** (dark) and **Milk** (light) themes before merging.
-- **Icons:** Use `lucide-react` exclusively. Standard actions: `size={20}`. Inline text icons: `size={16}`. Always use `aria-label` for icon-only buttons.
-- **File naming:** All files and directories use `kebab-case`. `PascalCase` and `camelCase` filenames are forbidden.
-- **Component exports:** Exported React components use `PascalCase` names despite residing in `kebab-case` files.
-- **Barrel exports:** Every domain-specific folder includes an `index.ts` that re-exports its public components.
-- **Decomposition:** Any component exceeding ~150 lines must be broken into smaller, composable units.
-- **Types:** The `any` type is forbidden. Use `unknown` and narrow with type guards.
-- **Colours:** All colours are defined in **OKLCH**. Hexadecimal, RGB, and HSL are strictly forbidden.
-- **Documentation:** Types and Zod `.describe()` are the primary documentation layer — not comments. TSDoc only when types genuinely can't convey intent (caching semantics, `"use client"` rationale, optimistic update behavior). Skip obvious components, thin pages, and self-documenting props. Load `references/documentation.md` for the full hierarchy.
-- **Tailwind:** Use Tailwind v4 CSS-first syntax only. No `tailwind.config.ts`, no v3 syntax.
+2. **Type-Safe Data Boundaries** — Data flows through explicit, validated boundaries. Server Actions use Zod schemas for input validation. API responses are typed end-to-end. Runtime data never crosses a trust boundary without validation. This catches integration bugs at the boundary rather than deep in component trees.
 
-## Architectural Layers
+3. **Accessible by Default** — Accessibility is a design constraint, not a post-hoc audit. Semantic HTML, ARIA attributes, keyboard navigation, focus management, color contrast, and screen reader testing are part of every feature, not a separate checklist. Inaccessible UI is a bug.
 
-The codebase follows a strict inward-facing dependency graph. Higher layers depend on lower layers — never the reverse.
+4. **Cohesive Visual System** — Wordloop uses a design token system with Tailwind CSS. Colors, spacing, typography, and elevation follow the design guide. Hardcoded values bypass the system and create visual debt. Every visual decision should trace back to a design token or an explicit deviation.
 
-| Layer | Directory | Responsibility | Depends On |
-|-------|-----------|----------------|------------|
-| **Schemas** | `lib/schemas/` | Zod schemas and `z.infer` types | Zero internal dependencies |
-| **API Client** | `lib/api.ts` | One function per Go REST endpoint | Schemas only |
-| **Utilities** | `lib/utils.ts` | Pure functions (`cn`, formatters) | Zero internal dependencies |
-| **Hooks** | `hooks/` | SWR data-fetching and utilities | API Client, Schemas |
-| **Contexts** | `lib/contexts.tsx` | Cross-cutting client state | Never imports UI components |
-| **UI Primitives** | `components/ui/` | shadcn/ui components | Never edit manually; update via `npx shadcn@latest add` |
-| **Features** | `components/<domain>/` | Domain-specific UI | Primitives, Hooks, Contexts, Utilities |
-| **Pages** | `app/` | Route definitions | Immediately delegate to Feature Components — pages must remain thin |
+5. **Optimistic, Resilient UI** — Mutations use optimistic updates with proper rollback. Error boundaries catch failures gracefully. Loading states are intentional, not afterthoughts. The UI should feel responsive even when the network isn't.
 
-**The cardinal rule: dependencies only point inward.** A schema never imports a hook. A hook never imports a component. A page never contains business logic — it delegates to feature components immediately.
+## How to Use This Skill
 
-## Implementation Workflow
-
-Follow this sequence for every feature or change:
-
-1. **Locate the layer** — Determine which architectural layer the change belongs to. This dictates import boundaries and testing strategy.
-2. **Design the types** — Define or extend Zod schemas in `lib/schemas/` first. All downstream types derive from these schemas via `z.infer`.
-3. **Build the data path** — If new data is needed: add the API client function → create the SWR hook → seed hydration from the server component.
-4. **Build the component** — Server Component by default. Add `"use client"` only when hooks, events, or browser APIs are strictly required.
-5. **Apply the visual language** — Use the OKLCH colour tokens, Geist typography scale, 8pt spatial grid, and the correct Liquid Glass card variant.
-6. **Write tests** — Vitest + RTL for components. MSW for network mocking. Test in both themes.
-7. **Verify** — Run `pnpm lint`, check both themes visually, confirm no layer violations.
-
-## Reference Guide
-
-Load detailed implementation guidance based on the task at hand:
+Match the user's task to the smallest relevant reference set. Most tasks touch one or two references.
 
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
-| Layers & File Structure | `references/architecture.md` | Layer boundaries, directory layout, file conventions, barrel exports, route structure |
-| Type Safety & Schemas | `references/type-system.md` | Zod contracts, discriminated unions, Result pattern, serialisation rules |
-| Server vs Client Components | `references/server-components.md` | RSC boundaries, async params, directives, runtime selection |
-| Data Fetching | `references/data-fetching.md` | SWR hooks, hydration seeding, waterfall prevention, optimistic UI, route handlers |
-| Mutations & Forms | `references/mutations-and-forms.md` | Server Actions, react-hook-form, useTransition, error flow |
-| Routing & Navigation | `references/routing-and-navigation.md` | File-based routing, parallel/intercepting routes, proxy, modals |
-| Error Boundaries | `references/error-boundaries.md` | error.tsx, not-found, auth errors, navigation gotcha, hydration errors |
-| Visual Language & Surfaces | `references/visual-language.md` | OKLCH palette, Geist typography, 8pt grid, surface dynamics, Liquid Glass cards |
-| Tailwind & Theming | `references/tailwind-and-styling.md` | Tailwind v4 CSS-first config, @theme, @custom-variant, animations |
-| UX Principles | `references/ux-principles.md` | Speed, navigation, info architecture, feedback, accessibility, empty states, copy |
-| Testing | `references/testing.md` | Vitest + RTL, MSW, hook isolation, theme coverage, accessibility |
-| Documentation | `references/documentation.md` | The documentation trust hierarchy (types → Zod `.describe()` → naming → TSDoc). When comments are harmful vs. justified. Types-as-documentation, hook caching notes, `"use client"` rationale, in-code markers, service README. |
-| Performance & Deployment | `references/performance-and-deployment.md` | Images, fonts, bundling, scripts, metadata, self-hosting, Docker, debug |
+| Architecture & Layers | `references/architecture.md` | Understanding the app's architectural layers, file organization, or module boundaries. |
+| Server Components | `references/server-components.md` | Deciding server vs client boundary, understanding RSC patterns, streaming. |
+| Data Fetching | `references/data-fetching.md` | Fetching data in server components, SWR patterns, cache invalidation. |
+| Mutations & Forms | `references/mutations-and-forms.md` | Server Actions, form validation with Zod, optimistic updates, error handling. |
+| Routing & Navigation | `references/routing-and-navigation.md` | App Router conventions, layouts, parallel routes, intercepting routes, modals. |
+| Error Boundaries | `references/error-boundaries.md` | Error handling UI, fallback components, recovery patterns. |
+| Type System | `references/type-system.md` | TypeScript patterns, Zod schemas, shared types, type narrowing. |
+| Tailwind & Styling | `references/tailwind-and-styling.md` | Design tokens, Tailwind CSS usage, theming, responsive design, dark mode. |
+| Visual Language | `references/visual-language.md` | Color system, typography, spacing grid, elevation, surface dynamics. |
+| UX Principles | `references/ux-principles.md` | Interaction patterns, progressive disclosure, feedback, empty states. |
+| Testing | `references/testing.md` | Component tests, integration tests, accessibility testing, test utilities. |
+| Performance & Deployment | `references/performance-and-deployment.md` | Bundle analysis, lazy loading, image optimization, build configuration. |
+| Documentation | `references/documentation.md` | Component documentation, Storybook patterns, inline docs. |
 
-## Constraints
+## Required Wordloop Context
 
-### Do
+Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
 
-- Place all API data types in `lib/schemas/` as Zod schemas — derive TypeScript types via `z.infer<typeof Schema>`
-- Use `"use client"` only when browser APIs, React state, or hooks are strictly required
-- Fetch data in Server Components where possible — pass serialised data to client components as props
-- Use SWR for all client-side data fetching — hooks go in `hooks/use-data.ts`
-- Seed SWR caches by wrapping Server Components in `<SWRConfig value={{ fallback }}>`
-- Use Server Actions for all mutations — never call the API client directly from client components for writes
-- Return `ActionResult<T>` from all Server Actions to prevent unhandled client-side crashes
-- Use `react-hook-form` with `@hookform/resolvers/zod` for all form validation
-- Use discriminated unions for state modeling — prevent impossible states at the type level
-- Apply OKLCH colour tokens from CSS variables — never hardcode colour values
-- Use the Geist typographic scale — never invent ad-hoc font sizes
-- Follow the 8pt spatial grid — all spacing uses multiples of 0.5rem
-- Test every component in both Obsidian (dark) and Milk (light) themes
+- `principles/stack/frontend` — Wordloop's frontend technology choices and conventions.
+- `learn/services/app/architecture` — App Router structure, layers, and module organization.
+- `learn/services/app/implementation` — Data fetching, mutations, state management patterns.
+- `learn/services/app/design-guide` — Visual system, design tokens, component patterns.
+- `learn/services/app/ux-guide` — Interaction patterns, accessibility requirements, user flows.
 
-### Do Not
+## Task Routing
 
-- Use `useEffect` for data fetching — use SWR
-- Use `any` as a type — use `unknown` and narrow
-- Write standalone TypeScript interfaces for API data — use `z.infer`
-- Write `console.log` in production code — use the logging utility
-- Manually edit `components/ui/` files — update via `npx shadcn@latest add`
-- Use hex, RGB, or HSL colours — use OKLCH exclusively
-- Use Tailwind v3 syntax or create `tailwind.config.ts` — use CSS-first v4 patterns
-- Create separate "view" and "edit" screens — use inline editing
-- Use harsh stoplight reds/greens — use Sage Green for success, Muted Rose for errors
-- Block workflows with loading spinners for simple submissions — use optimistic UI
-- Exceed ~150 lines in a single component — decompose
+- **Data fetching or mutations** → Read app implementation and frontend principle. Verify server/client boundary.
+- **UI/design work** → Read design guide and UX guide. Check design tokens for colors and spacing.
+- **Routing/modal work** → Read app architecture. Check existing route conventions.
+- **Real-time UI** → Read real-time principle and event references. Load `references/data-fetching.md` for streaming patterns.
+- **Form work** → Load `references/mutations-and-forms.md`. Verify Zod schema patterns.
+- **Styling/theming** → Load `references/tailwind-and-styling.md` and `references/visual-language.md`. Check design guide.
+- **Performance issues** → Load `references/performance-and-deployment.md`. Profile before optimizing.
 
-## Anti-patterns to Flag
+## Safety Gates
 
-When reviewing or writing wordloop-app code, actively flag these violations:
+- Do not use `useEffect` for data fetching — this is an App Router codebase with server-side data fetching. Verify against current patterns in the codebase before introducing fetch-in-effect.
+- Do not introduce hardcoded colors, spacing, or font sizes. Check the design guide for tokens.
+- Do not invent framework versions or API assumptions; verify `services/wordloop-app/package.json`.
+- Do not add `"use client"` to a component without confirming it needs browser APIs or interactive state.
+- Run app tests and lint where applicable. Run `./dev docs health` for docs updates.
 
-| Anti-pattern | Why It Matters |
-|-------------|---------------|
-| **Layer crossing** | A hook importing a component, or a schema importing a hook, breaks the dependency direction |
-| **Fat pages** | Route files in `app/` that contain business logic instead of delegating to feature components |
-| **useEffect fetching** | Bypasses SWR's caching, deduplication, and revalidation — leads to waterfall requests and stale data |
-| **Raw fetch in client** | Client components calling `lib/api.ts` directly for mutations instead of using Server Actions |
-| **Unserialisable props** | Passing Date objects, Maps, Sets, or functions (except Server Actions) from server to client components |
-| **Missing Suspense** | `useSearchParams` without a Suspense boundary causes full-page CSR bailout |
-| **router.push to close modal** | Creates broken history entries — use `router.back()` to close intercepting route modals |
-| **Hardcoded colours** | Using hex/RGB/HSL instead of OKLCH CSS variables |
-| **Missing barrel export** | Domain folder without an `index.ts` re-exporting public components |
-| **Monolith component** | Component exceeding 150 lines without decomposition |
-| **Tailwind v3 config** | Creating `tailwind.config.ts` or using `@apply` with v3 syntax |
-test
+## Hallucination Controls
+
+Before presenting frontend guidance as factual:
+
+- Check `services/wordloop-app/package.json` for framework versions and available dependencies.
+- Check existing components for naming conventions, file structure, and patterns before proposing new ones.
+- Check the design guide for color values, spacing scale, and typography before recommending visual changes.
+- Check the app's route structure before inventing new route paths or layouts.
+- Label any recommendation based on general Next.js knowledge (rather than Wordloop-specific patterns) as an inference.
+
+## Output Expectations
+
+- Component changes include the server/client boundary decision and its justification.
+- UI changes reference specific design tokens or explain why a custom value is needed.
+- New features include accessibility considerations (keyboard nav, ARIA, screen reader behavior).
+- Verification steps include specific test commands and visual checks to perform.
+- Recommendations distinguish between Wordloop app conventions and general React/Next.js practices.
+
+## Antipatterns
+
+Reject these patterns:
+
+- **Client Component by default** — Adding `"use client"` out of habit rather than necessity. Server Components are the default for a reason.
+- **Fetch-in-useEffect** — Client-side data fetching when server-side fetching would eliminate the loading waterfall and reduce bundle size.
+- **Hardcoded visual values** — Magic numbers for colors, spacing, or typography that bypass the design token system.
+- **Untyped form data** — Processing form submissions without Zod validation at the Server Action boundary.
+- **Accessibility bolted on** — Treating a11y as a separate pass instead of building it into the component from the start.
+- **God components** — Components that mix data fetching, business logic, and presentation instead of composing smaller, focused pieces.

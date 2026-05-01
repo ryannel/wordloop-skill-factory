@@ -1,0 +1,41 @@
+{
+  "skill_name": "core-engineer",
+  "evals": [
+    {
+      "id": "hexagonal-layer-placement",
+      "prompt": "I need to add a feature that sends an email notification when a meeting transcript is ready. The email content depends on meeting metadata and participant preferences. Where in the hexagonal architecture should the email sending logic, the notification decision logic, and the email template rendering go?",
+      "expected_output": "Places notification decision in the service layer, email sending in a provider, template rendering in the provider or a shared utility, with domain types for notification preferences.",
+      "files": [],
+      "assertions": [
+        "Places the notification business logic (who gets notified, when) in the service layer.",
+        "Places the email sending (SMTP/API call) in a provider adapter behind an interface.",
+        "Defines the notification interface in the gateway/port layer, not in the provider.",
+        "Keeps domain types (notification preferences, meeting metadata) free of infrastructure concerns."
+      ]
+    },
+    {
+      "id": "error-handling-review",
+      "prompt": "Review this Go error handling pattern: a handler catches an error from the service, logs it with slog.Error, wraps it with fmt.Errorf, and returns it. The service also logs the same error before returning it to the handler. What's wrong and how should it be fixed?",
+      "expected_output": "Identifies the log-and-return antipattern causing duplicate log entries, recommends wrapping at each layer and logging once at the entrypoint.",
+      "files": [],
+      "assertions": [
+        "Identifies the double-logging problem (same error logged at service and handler layers).",
+        "Recommends logging the error once, at the entrypoint/handler layer.",
+        "Recommends wrapping the error with context at each layer using fmt.Errorf or typed errors.",
+        "Suggests using structured error types for errors that callers need to inspect."
+      ]
+    },
+    {
+      "id": "concurrency-safety",
+      "prompt": "I need to process transcript segments in parallel — each segment needs speaker identification and sentiment analysis, then the results are merged. The processing should respect request context for cancellation. Design the concurrency approach.",
+      "expected_output": "Uses errgroup with context for coordinated parallel processing, with proper error handling and cancellation propagation.",
+      "files": [],
+      "assertions": [
+        "Uses errgroup (or equivalent) for coordinated goroutine management.",
+        "Propagates the request context for cancellation support.",
+        "Handles errors from individual goroutines without losing results from successful ones.",
+        "Does not launch unsupervised goroutines or use bare go statements."
+      ]
+    }
+  ]
+}

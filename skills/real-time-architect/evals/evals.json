@@ -1,0 +1,41 @@
+{
+  "skill_name": "real-time-architect",
+  "evals": [
+    {
+      "id": "protocol-selection",
+      "prompt": "We need to show live transcript text appearing word-by-word as the ML service processes audio. The client only needs to receive data, not send it. The transcript updates are append-only. Which real-time protocol should we use and why?",
+      "expected_output": "Recommends SSE as the simplest fit for a unidirectional, append-only stream, with justification for why WebSockets or WebTransport are unnecessary here.",
+      "files": [],
+      "assertions": [
+        "Recommends SSE (or explains why a simpler protocol fits) rather than defaulting to WebSockets.",
+        "Justifies the choice based on the unidirectional, append-only nature of the data.",
+        "Addresses reconnection and replay for missed transcript segments.",
+        "Explains what requirements would warrant upgrading to WebSockets or WebTransport."
+      ]
+    },
+    {
+      "id": "echo-suppression-design",
+      "prompt": "Users can edit meeting notes collaboratively. When User A edits a note, the change is saved via a REST mutation and also broadcast to all connected clients via WebSocket. User A sees their own edit appear twice — once from the optimistic update and once from the WebSocket broadcast. Design the echo suppression mechanism.",
+      "expected_output": "Designs a source-aware echo suppression pattern using origin IDs or mutation correlation IDs to filter self-originated events.",
+      "files": [],
+      "assertions": [
+        "Uses a correlation ID, origin ID, or client ID to identify self-originated events.",
+        "Filters or reconciles the WebSocket broadcast against the pending optimistic update.",
+        "Handles the case where the server-confirmed state differs from the optimistic update (rollback).",
+        "Keeps the echo suppression logic on the client side without requiring server changes to filter per-connection."
+      ]
+    },
+    {
+      "id": "reconnection-resilience",
+      "prompt": "Our WebSocket connection for live meeting updates drops when users switch WiFi networks or go through tunnels. Currently, reconnection just re-establishes the socket but doesn't recover missed events. Users see stale data until they refresh the page. Design a resilient reconnection strategy.",
+      "expected_output": "Designs reconnection with sequence-based replay, handling duplicate detection and gap recovery.",
+      "files": [],
+      "assertions": [
+        "Includes sequence numbers or timestamps on events to track position.",
+        "Replays missed events from the last known position on reconnection.",
+        "Handles duplicate events that arrive during the replay window (idempotency).",
+        "Addresses the case where the replay buffer has expired and a full state resync is needed."
+      ]
+    }
+  ]
+}
