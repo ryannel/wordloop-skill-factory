@@ -56,8 +56,10 @@ Match the user's task to the smallest relevant reference set. Most tasks touch o
 Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
 
 - `principles/stack/postgres` — Wordloop's PostgreSQL conventions and design philosophy.
-- `reference/database` — Generated database reference (source of truth for current schema).
-- `guides/migrate-schema` — Migration workflow, tooling, and safety checklist.
+- `reference/database` — Generated database reference for the current schema.
+- `guides/migrate-schema` — Wordloop Core target-state schema workflow, tooling, and safety checklist.
+- `services/wordloop-core/db/schema.sql` — Canonical source of truth for the Core Postgres schema.
+- `services/wordloop-core/cmd/migrate` — `pg-schema-diff` migrator used by `./dev db dry-run` and `./dev db migrate`.
 
 ## Task Routing
 
@@ -65,15 +67,36 @@ Read the relevant canonical docs before making non-trivial recommendations or co
 - **Performance issue** → Run EXPLAIN ANALYZE on the problem query. Load `references/query-performance.md` and `references/indexes.md`.
 - **Index changes** → Load `references/indexes.md`. Verify the index will be used with EXPLAIN ANALYZE before adding.
 - **JSONB/vector work** → Load `references/jsonb.md`. Read Postgres principle for guidance on when to use JSONB vs normalized columns.
-- **Migration authoring** → Load `references/migrations.md`. Verify the migration is safe for zero-downtime deployment.
+- **Schema change authoring** → Load `references/migrations.md`, then verify the target-state change in `services/wordloop-core/db/schema.sql` and review `./dev db dry-run` hazards for zero-downtime deployment risk.
 - **Privacy/retention work** → Load `references/security.md`. Read Privacy principle and active design docs.
 - **Scaling decisions** → Load `references/scaling.md`. Check current table sizes and growth projections.
+- **TDD schema document** → Follow the TDD Schema Documentation rules below. Scaffold with `./dev new schema <bet-slug>`.
+
+## TDD Schema Documentation
+
+When writing a schema document for a bet's TDD (`tdd/schemas/postgres.mdx`), the document describes **target state** — how the schema works at completion. It is not a diff, gap analysis, or migration plan.
+
+**Structure:** One section per domain area (e.g. Recording Lifecycle, Speaker Identification). Each section contains the full `CREATE TABLE` statement(s) for that domain's tables, including inline SQL comments that explain *why* design decisions were made. End with an Index Design table that justifies every non-obvious index.
+
+**Rules:**
+
+1. **Target state only.** Never use "New Table:", "Modified Table:", or "Dropped:" headings. Never write `-- changed: was X`, `-- ... existing columns ...`, or any diff notation. A reader unfamiliar with history should read this as a coherent description of how things work, not as a record of what changed.
+
+2. **Full `CREATE TABLE` for every table shown.** No partial snippets. If a table is relevant to the domain, show every column in its final form. Inline SQL comments explain rationale; they do not annotate history.
+
+3. **Comments explain WHY, not WHAT.** Column names already say what. Comments are for non-obvious constraints, invariants, trade-offs, and design choices that would surprise a future reader. Example: `-- REAL not DECIMAL: ML scores are approximate floats` is useful. `-- score column` is not.
+
+4. **State machines and ER diagrams use the `<Mermaid>` component.** Fumadocs does not render fenced ` ```mermaid ``` ` blocks. Use `<Mermaid chart={`...`} />` with `import { Mermaid } from '@/components/Mermaid'` after the frontmatter. Every table with a meaningful lifecycle gets a `stateDiagram-v2`. The overview section gets an `erDiagram`.
+
+5. **Index design is explicit and justified.** Every index appears in both the `CREATE TABLE` block (inline) and the Index Design table at the end of the document. The Index Design table states the query the index serves, not just the columns.
+
+6. **Scaffold with `./dev new schema <bet-slug>`.** This creates `tdd/schemas/postgres.mdx`, a `tdd/schemas/meta.json`, and registers `schemas` in `tdd/meta.json`. The template at `services/wordloop-docs/content/docs/work/_template/.scaffolds/schema.mdx` provides the correct starting structure.
 
 ## Safety Gates
 
 - Do not design schema without known access patterns. A table designed without knowing how it will be queried is a performance risk.
 - Do not propose blocking or destructive migrations without expand-contract reasoning. Locking a large table during deployment causes downtime.
-- Do not hand-edit the generated DB reference as the source fix. Update the migration and regenerate.
+- Do not hand-edit the generated DB reference as the source fix. Update `services/wordloop-core/db/schema.sql`, review `./dev db dry-run`, apply with `./dev db migrate`, then refresh reference docs/snapshots.
 - Do not add indexes without verifying they will be used. EXPLAIN ANALYZE is the validation, not intuition.
 - Do not skip foreign key constraints for "performance" without measuring the actual cost and documenting the tradeoff.
 - Run migration and test commands appropriate to the service.
@@ -83,17 +106,17 @@ Read the relevant canonical docs before making non-trivial recommendations or co
 Before presenting database guidance as factual:
 
 - Check the generated database reference for current schema, table names, and column types.
-- Check existing migrations for naming conventions, ordering, and patterns.
+- Check `services/wordloop-core/db/schema.sql` and `services/wordloop-core/cmd/migrate` for the current target-state workflow before discussing migrations.
 - Check PostgreSQL version compatibility for features (e.g., MERGE, JSON path queries).
 - Run EXPLAIN ANALYZE on actual data before recommending index or query changes.
 - Label any recommendation based on general PostgreSQL knowledge (rather than Wordloop-specific schema) as an inference.
 
 ## Output Expectations
 
-- Schema changes include the migration SQL and a safety assessment (locking behavior, data volume impact, rollback plan).
+- Schema changes include the target-state SQL diff, `./dev db dry-run` plan/hazards, and a safety assessment (locking behavior, data volume impact, rollback/forward-fix plan).
 - New tables include the access patterns they serve and the indexes they need.
 - Performance recommendations include EXPLAIN ANALYZE output before and after.
-- Verification steps include specific migration commands and test scenarios.
+- Verification steps include `./dev db dry-run`, `./dev db migrate`, and test scenarios.
 - Recommendations distinguish between Wordloop database conventions and general PostgreSQL best practices.
 
 ## Antipatterns
@@ -105,4 +128,4 @@ Reject these patterns:
 - **Index speculation** — Adding indexes "just in case" without query evidence. Each index has write and storage costs.
 - **JSONB as schema escape** — Using JSONB columns to avoid schema design decisions. JSONB is appropriate for genuinely dynamic data, not for avoiding migrations.
 - **Application-only constraints** — Enforcing uniqueness, nullability, or referential integrity only in application code. The database should enforce invariants that matter.
-- **Manual reference editing** — Hand-writing database reference docs that should be generated from the actual schema.
+- **Manual reference as source** — Treating database reference docs as the schema source. The source is `services/wordloop-core/db/schema.sql`; docs must be refreshed from it.

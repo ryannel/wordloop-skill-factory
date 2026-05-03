@@ -1,0 +1,47 @@
+{
+  "skill_name": "bet-lead",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to start a new bet for improving our search functionality. Users have been complaining they can't find old meetings. Walk me through what I need to do first.",
+      "expected_output": "Routes to `work` § Problem Statement. Guides the user to write a problem statement first, explains appetite as opportunity cost, provides the `./dev new problem-statement` command, and warns against jumping to a solution.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Here's my pitch for the meeting-search bet. Can you review it? The problem section says 'We need to add full-text search to the meetings API.' The no-gos section says 'We won't do everything that's out of scope.'",
+      "expected_output": "Routes to `work` § Pitch + its review checklist. Identifies that the problem section describes a solution (not pain), that the no-gos are vague and need specific exclusions with reasons, and recommends rewriting both sections with concrete guidance from the checklist.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I've written the data flow for our live-capture bet. My sequence diagrams use labels like 'POST /meetings/{id}/audio' and 'Authorization: Bearer token'. The boundary inventory has 5 entries but I count 8 distinct service calls in the flows. Is this ready for review?",
+      "expected_output": "Routes to `work` § Data Flows + its review checklist. Flags that diagram labels should be descriptive operations not endpoint paths, that auth details belong in contracts not data flows, and that the boundary inventory is incomplete (8 calls but only 5 entries). References the review checklist to structure the feedback.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I need to decompose our recording bet into slices. I'm thinking: Slice 1 - all the database tables, Slice 2 - all the API endpoints, Slice 3 - all the frontend components. Sound good?",
+      "expected_output": "Routes to `work` § Anatomy of a well-written slice + its review checklist. Identifies this as horizontal slicing and explains why it's problematic (delays integration, hides interface mismatches, nothing verifiable until the last slice). Recommends restructuring vertically around user-visible capabilities using the vertical slicing test from the doc.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "My slice has these test cases: 'Test upload - works correctly', 'Test error handling - handles errors properly'. The slice is for the audio upload capability. Are these good enough?",
+      "expected_output": "Routes to `work` § Anatomy of a well-written slice (test cases section) and `tests/bets/README.md`. Explains that these assertions are too vague to be falsifiable. Provides examples of specific assertions like 'POST /meetings/{id}/audio returns 202 with Location header'. References the test design principles and example pytest code from the README.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "We just finished implementing a slice and the code is merged. The bet tests pass. Can I mark the slice as done?",
+      "expected_output": "Routes to `work` § Completing a Slice. Explains the full completion checklist: code merged + bet tests green + permanent service tests implemented + code review + API review + testing review + documentation updated. Warns that 'code works' is not the same as 'slice is done'.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "How do the bet progress tests relate to our permanent test suite? When do I write which?",
+      "expected_output": "Routes to `work` § Bet Test Suite and `tests/bets/README.md`. Explains the dual-purpose testing model using the comparison table: bet tests are temporary system-level progress signals, permanent tests are lasting service-level coverage. Describes what permanent tests cover that bet tests don't. Explains the transition lifecycle.",
+      "files": []
+    }
+  ]
+}

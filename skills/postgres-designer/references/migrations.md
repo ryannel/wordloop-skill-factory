@@ -7,7 +7,7 @@
 - [Safe Operations Reference](#safe-operations-reference)
 - [Dangerous Operations and Safe Alternatives](#dangerous-operations-and-safe-alternatives)
 - [Backfill Strategy](#backfill-strategy)
-- [Migration File Template](#migration-file-template)
+- [Target-State Schema Change Template](#target-state-schema-change-template)
 - [Schema Linting and CI](#schema-linting-and-ci)
 
 > **Related references:** `indexes.md` for `CREATE INDEX CONCURRENTLY`, `constraints.md` for `NOT VALID` constraint patterns, `query-performance.md` for validating plan changes after migration.
@@ -22,7 +22,7 @@ Every schema change must maintain **100% availability**. The application is alwa
 1. **Idempotent:** Every statement uses `IF NOT EXISTS` / `IF EXISTS` guards.
 2. **Non-locking:** Avoid `ACCESS EXCLUSIVE` locks on large tables. Use `CONCURRENTLY`, `NOT VALID`, and the expand-contract pattern.
 3. **Backward-compatible:** Old application code must work with the new schema. New application code must work with the old schema.
-4. **One concern per migration:** Don't mix DDL and DML. Don't combine unrelated table changes.
+4. **One concern per schema change:** Do not mix DDL and DML. Do not combine unrelated table changes in one target-state update.
 5. **Lock-timeout disciplined:** Set `lock_timeout` before every DDL statement to fail fast instead of creating a lock queue that stalls all traffic.
 
 ---
@@ -36,7 +36,7 @@ The gold standard for breaking schema changes. Decouples the schema change from 
 Add the new column/table. The new column must be nullable or have an immutable default so existing application code (unaware of the change) continues to work.
 
 ```sql
--- Migration 0024_add_display_name.sql
+-- Target-state expansion in db/schema.sql
 SET LOCAL lock_timeout = '5s';
 
 ALTER TABLE users
@@ -56,7 +56,7 @@ ALTER TABLE users
 2. Remove the old column (or add `NOT NULL` to the new one).
 
 ```sql
--- Migration 0026_finalize_display_name.sql
+-- Later target-state contraction in db/schema.sql
 SET LOCAL lock_timeout = '5s';
 
 -- Add NOT NULL constraint safely
@@ -69,7 +69,7 @@ ALTER TABLE users VALIDATE CONSTRAINT chk_users_display_name_not_null;
 
 ### Timing
 
-Each phase is a **separate deployment**. The entire lifecycle can span days or weeks for critical tables. Never rush all phases into a single release.
+Each phase is a **separate deployment and schema update**. The entire lifecycle can span days or weeks for critical tables. Never rush all phases into a single release.
 
 ---
 
@@ -86,7 +86,7 @@ SET LOCAL lock_timeout = '5s';
 
 **Why:** If the DDL cannot acquire its lock within 5 seconds (because a long-running query holds a conflicting lock), it **fails immediately** instead of queuing. Without `lock_timeout`, the queued DDL blocks all subsequent queries behind it, creating a cascading pile-up that looks like a full outage.
 
-**If the migration fails due to timeout:** Retry later. Investigate what long-running query was holding the conflicting lock. Consider killing the blocking query first (`pg_cancel_backend`).
+**If the schema plan fails due to timeout:** Retry later. Investigate what long-running query was holding the conflicting lock. Consider killing the blocking query first (`pg_cancel_backend`).
 
 ### Lock Levels
 
@@ -233,7 +233,7 @@ ALTER TABLE events DROP COLUMN id;
 ALTER TABLE events RENAME COLUMN id_new TO id;
 ```
 
-Each phase is a separate migration deployed independently.
+Each phase is a separate schema update deployed independently.
 
 ---
 
@@ -281,53 +281,40 @@ END $$;
 
 ---
 
-## Migration File Template
+## Target-State Schema Change Template
+
+Wordloop Core uses a target-state schema, not checked-in up/down migration files. Make the desired final state explicit in `services/wordloop-core/db/schema.sql`, then inspect the generated plan with `./dev db dry-run`.
 
 ```sql
--- ============================================================
--- Migration: NNNN_description.sql
--- Description: Brief explanation of what this migration does
--- ============================================================
-
--- Set lock timeout to prevent lock queue cascades
-SET LOCAL lock_timeout = '5s';
-
--- === DDL CHANGES ===
+-- services/wordloop-core/db/schema.sql
 
 CREATE TABLE IF NOT EXISTS new_entity (
-    id         UUID        NOT NULL DEFAULT uuidv7(),
+    id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     name       TEXT        NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-    CONSTRAINT pk_new_entity PRIMARY KEY (id)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- === INDEXES ===
-
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_new_entity_name
+CREATE INDEX IF NOT EXISTS idx_new_entity_name
     ON new_entity (name);
 
--- === CONSTRAINTS (for existing tables, use NOT VALID + VALIDATE pattern) ===
-
--- ALTER TABLE existing_table
---     ADD CONSTRAINT chk_... CHECK (...) NOT VALID;
--- ALTER TABLE existing_table VALIDATE CONSTRAINT chk_...;
+-- For existing hot tables, prefer staged constraints and expand-contract
+-- sequencing. Review the pg-schema-diff hazards before applying.
 ```
 
-### Naming Convention
+For a risky change, document the release sequence in the PR instead of hiding it in a monolithic migration file:
 
-```
-NNNN_description.sql
-```
-
-- `NNNN` — zero-padded sequential number (e.g., `0001`, `0024`, `0100`).
-- `description` — snake_case, verb-first (e.g., `create_meetings`, `add_display_name_to_users`).
+1. Expand `db/schema.sql` with the additive shape.
+2. Run `./dev db dry-run` and review generated DDL/hazards.
+3. Apply with `./dev db migrate` in the target environment.
+4. Backfill outside the migrator in batches when data movement is needed.
+5. Deploy code that stops using the old shape.
+6. Contract `db/schema.sql` in a later release.
 
 ---
 
 ## Schema Linting and CI
 
-Run automated linters in CI to catch dangerous migration patterns before they reach production.
+Run automated checks in CI to catch dangerous schema-change patterns before they reach production.
 
 ### Squawk (Recommended)
 
@@ -338,17 +325,17 @@ Catches unsafe DDL operations:
 - Missing `lock_timeout`
 - Table rewrites
 
-### Atlas
+### pg-schema-diff
 
-Declarative schema management — detects schema drift between the declared state and the actual database.
+Wordloop Core uses `github.com/stripe/pg-schema-diff` through `services/wordloop-core/cmd/migrate`. `./dev db dry-run` is the required local review command for generated DDL and hazards.
 
 ### CI Pipeline Checklist
 
-1. **Static analysis:** Lint migration SQL for anti-patterns (`squawk`, `atlas lint`)
-2. **Migration testing:** Apply migrations to an ephemeral database (Testcontainers or Neon branch)
-3. **Schema drift detection:** Compare live schema against version-controlled definitions
-4. **Rollback validation:** Verify that every up-migration has a corresponding down-migration
-5. **Performance estimation:** For large tables, estimate lock duration and I/O impact
+1. **Static analysis:** Inspect target-state SQL for anti-patterns and run `./dev db dry-run` to review generated hazards.
+2. **Schema testing:** Apply the target schema to an ephemeral database (Testcontainers or Neon branch).
+3. **Schema drift detection:** Compare live schema against `services/wordloop-core/db/schema.sql`.
+4. **Forward-fix planning:** For destructive changes, document the expand-contract sequence and rollback/forward-fix path.
+5. **Performance estimation:** For large tables, estimate lock duration and I/O impact.
 
 ### Testcontainers (Recommended for Integration Tests)
 
@@ -356,7 +343,7 @@ Spin up a real PostgreSQL container matching your production version and extensi
 
 - **Container reuse:** Use the singleton pattern to share one container across test suites. Clean data between tests with transaction rollback or `TRUNCATE`.
 - **Port randomization:** Testcontainers maps to random host ports, enabling parallel test execution without conflicts.
-- **Same migrations as production:** Seed the test database using the same migration scripts that run in production. This ensures schema parity and catches constraint/trigger issues before merge.
+- **Same schema as production:** Seed the test database from `services/wordloop-core/db/schema.sql` or the same `cmd/migrate` path used in production. This ensures schema parity and catches constraint/trigger issues before merge.
 
 ### Ephemeral Database Branching (Neon)
 

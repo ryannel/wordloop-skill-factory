@@ -4,6 +4,24 @@
   "description": "Maps maintained agent skills to canonical Wordloop docs pages. Docs hold durable knowledge; skills control execution.",
   "skills": [
     {
+      "skill": "bet-lead",
+      "source_path": "tools/skill-factory/skills/bet-lead/SKILL.md",
+      "consumed_path": ".agents/skills/bet-lead/SKILL.md",
+      "canonical_docs": [
+        "work",
+        "principles/foundations/testing",
+        "principles/system-design/api-design",
+        "principles/system-design/hexagonal-architecture",
+        "principles/system-design/real-time"
+      ],
+      "secondary_docs": [
+        "guides/run-tests",
+        "reference/cli",
+        "decisions/0005-docs-canonical-skills-execution-layer"
+      ],
+      "owner": "product-platform"
+    },
+    {
       "skill": "api-architect",
       "source_path": "tools/skill-factory/skills/api-architect/SKILL.md",
       "consumed_path": ".agents/skills/api-architect/SKILL.md",
@@ -50,9 +68,19 @@
         "learn/services/core/implementation"
       ],
       "secondary_docs": [
+        "principles/system-design/api-design",
+        "principles/stack/postgres",
+        "guides/migrate-schema",
         "principles/quality/observability",
         "principles/quality/reliability",
-        "guides/add-api-endpoint"
+        "principles/system-design/integration-patterns",
+        "principles/system-design/real-time",
+        "principles/foundations/testing",
+        "guides/add-api-endpoint",
+        "guides/run-tests",
+        "guides/code-generation",
+        "reference/cli",
+        "start/first-contribution"
       ],
       "owner": "core-platform"
     },
@@ -61,16 +89,33 @@
       "source_path": "tools/skill-factory/skills/dev-handbook/SKILL.md",
       "consumed_path": ".agents/skills/dev-handbook/SKILL.md",
       "canonical_docs": [
+        "index",
         "start/quickstart",
         "start/first-contribution",
+        "learn/architecture/overview",
+        "learn/architecture/data-flow",
         "reference/cli",
         "guides/run-tests",
         "guides/code-generation",
+        "reference/api/core",
+        "reference/api/ml",
+        "reference/events/core-ws",
+        "reference/events/core-pubsub",
+        "reference/database",
         "work"
       ],
       "secondary_docs": [
+        "learn/architecture/local-infrastructure",
+        "learn/architecture/infrastructure",
+        "reference/configuration",
+        "guides/migrate-schema",
+        "guides/keep-docs-and-skills-in-sync",
+        "guides/correct-documentation-drift",
+        "operations/troubleshooting",
+        "decisions/0005-docs-canonical-skills-execution-layer",
         "principles/delivery/devex",
-        "operations/troubleshooting"
+        "principles/foundations/testing",
+        "principles/stack/postgres"
       ],
       "owner": "platform"
     },

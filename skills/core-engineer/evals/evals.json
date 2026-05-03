@@ -2,39 +2,79 @@
   "skill_name": "core-engineer",
   "evals": [
     {
-      "id": "hexagonal-layer-placement",
-      "prompt": "I need to add a feature that sends an email notification when a meeting transcript is ready. The email content depends on meeting metadata and participant preferences. Where in the hexagonal architecture should the email sending logic, the notification decision logic, and the email template rendering go?",
-      "expected_output": "Places notification decision in the service layer, email sending in a provider, template rendering in the provider or a shared utility, with domain types for notification preferences.",
+      "id": "api-endpoint-routing",
+      "prompt": "In wordloop-core I need to add a Go endpoint that returns a paginated list of meetings and updates the generated frontend client. What context should the agent load before editing handlers?",
+      "expected_output": "Routes to Core architecture/implementation plus Add API Endpoint, API Design, and the OpenAPI contract; recommends api-architect for contract shape changes and generation through documented ./dev gen flows.",
       "files": [],
       "assertions": [
-        "Places the notification business logic (who gets notified, when) in the service layer.",
-        "Places the email sending (SMTP/API call) in a provider adapter behind an interface.",
-        "Defines the notification interface in the gateway/port layer, not in the provider.",
-        "Keeps domain types (notification preferences, meeting metadata) free of infrastructure concerns."
+        "Loads Core architecture or implementation docs for non-trivial Core work.",
+        "Loads Add API Endpoint and API Design docs or equivalent OpenAPI contract context.",
+        "Identifies api-architect as relevant when endpoint contract shape changes.",
+        "Does not rely on local skill references or invent handler package paths without inspecting the repo.",
+        "Mentions generated-client workflow through documented ./dev gen flows rather than manual generation."
       ]
     },
     {
-      "id": "error-handling-review",
-      "prompt": "Review this Go error handling pattern: a handler catches an error from the service, logs it with slog.Error, wraps it with fmt.Errorf, and returns it. The service also logs the same error before returning it to the handler. What's wrong and how should it be fixed?",
-      "expected_output": "Identifies the log-and-return antipattern causing duplicate log entries, recommends wrapping at each layer and logging once at the entrypoint.",
+      "id": "database-migration-routing",
+      "prompt": "I need to add a nullable external_transcript_id column and an index in wordloop-core Postgres, then update the repository code. Which docs and safeguards should the Core agent use?",
+      "expected_output": "Loads Core docs plus Postgres and migrate-schema docs, checks db/schema.sql, cmd/migrate, dry-run hazards, and provider patterns, and routes schema/index design to postgres-designer when needed.",
       "files": [],
       "assertions": [
-        "Identifies the double-logging problem (same error logged at service and handler layers).",
-        "Recommends logging the error once, at the entrypoint/handler layer.",
-        "Recommends wrapping the error with context at each layer using fmt.Errorf or typed errors.",
-        "Suggests using structured error types for errors that callers need to inspect."
+        "Loads Core architecture or implementation docs for repository changes.",
+        "Loads Postgres and migrate-schema docs or equivalent migration context.",
+        "Checks services/wordloop-core/db/schema.sql and the pg-schema-diff workflow before proposing schema changes.",
+        "Identifies postgres-designer as relevant for schema, index, or query-design decisions.",
+        "Avoids treating provider SQL details as domain/service types."
       ]
     },
     {
-      "id": "concurrency-safety",
-      "prompt": "I need to process transcript segments in parallel — each segment needs speaker identification and sentiment analysis, then the results are merged. The processing should respect request context for cancellation. Design the concurrency approach.",
-      "expected_output": "Uses errgroup with context for coordinated parallel processing, with proper error handling and cancellation propagation.",
+      "id": "minimal-concurrency-routing",
+      "prompt": "In a wordloop-core service method I need to process transcript chunks concurrently with cancellation and error collection. What should the Core agent read and verify?",
+      "expected_output": "Loads Go Services and relevant Core docs, verifies context propagation and supervised goroutines, and does not load unrelated API/database/realtime docs by default.",
       "files": [],
       "assertions": [
-        "Uses errgroup (or equivalent) for coordinated goroutine management.",
-        "Propagates the request context for cancellation support.",
-        "Handles errors from individual goroutines without losing results from successful ones.",
-        "Does not launch unsupervised goroutines or use bare go statements."
+        "Loads Go Services for context, errors, interfaces, or concurrency guidance.",
+        "Loads Core architecture or implementation only if the change is non-trivial Core work.",
+        "Requires supervised goroutines with cancellation and error collection.",
+        "Does not load unrelated API, Postgres, or real-time docs unless the task crosses those boundaries.",
+        "Distinguishes repository-verified guidance from general Go inference when needed."
+      ]
+    },
+    {
+      "id": "realtime-handoff",
+      "prompt": "Core needs to publish transcript-ready events to Pub/Sub and fan them out to WebSocket clients with replay support. Which skill should lead and what should core-engineer do?",
+      "expected_output": "Uses core-engineer for Go implementation but hands off or collaborates with real-time-architect for event schema, Pub/Sub, WebSocket, replay, fan-out, and idempotency decisions.",
+      "files": [],
+      "assertions": [
+        "Identifies real-time-architect as required or strongly relevant for streaming/event design.",
+        "Loads integration-patterns and real-time docs or event references.",
+        "Keeps core-engineer focused on Go implementation inside wordloop-core.",
+        "Checks event contracts before changing async behavior.",
+        "Mentions idempotency, replay, fan-out, or source-aware update concerns as real-time design surfaces."
+      ]
+    },
+    {
+      "id": "frontend-near-miss",
+      "prompt": "In wordloop-app I need to fix a React modal that displays meeting transcripts with optimistic updates. Should core-engineer be the primary skill?",
+      "expected_output": "Does not use core-engineer as primary; routes to app-engineer and possibly real-time-architect if live updates are involved.",
+      "files": [],
+      "assertions": [
+        "Does not treat frontend-only wordloop-app work as primary core-engineer scope.",
+        "Routes the task to app-engineer.",
+        "Identifies real-time-architect only if live synchronization or streaming is central.",
+        "Avoids loading Core Go docs for a React modal task."
+      ]
+    },
+    {
+      "id": "ml-near-miss",
+      "prompt": "In wordloop-ml I need to adjust the Python diarization pipeline and FastAPI response model. Should core-engineer handle this?",
+      "expected_output": "Does not use core-engineer as primary; routes to ml-engineer and api-architect only if API contract design is involved.",
+      "files": [],
+      "assertions": [
+        "Does not treat wordloop-ml Python backend work as primary core-engineer scope.",
+        "Routes the task to ml-engineer.",
+        "Identifies api-architect only if response model or contract design changes are central.",
+        "Avoids loading wordloop-core Go docs for ML service implementation."
       ]
     }
   ]

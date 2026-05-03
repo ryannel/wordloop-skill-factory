@@ -1,93 +1,89 @@
 ---
 name: dev-handbook
 description: >
-  Orient agents and engineers inside the wordloop-platform monorepo using
-  canonical docs for setup, CLI workflows, submodules, specs, generation,
-  testing, Bet Design Studio, operations, and skill sync. Use when the user
-  asks how to start services, run tests, generate clients, find repo
-  structure, use ./dev, work with submodules, scaffold bets, sync skills,
-  understand platform workflows, troubleshoot local dev, or navigate the
-  monorepo. Make sure to use this skill whenever a user is getting started,
-  asking about repository conventions, or trying to figure out how to do
-  something in the platform, even if they don't explicitly mention the
-  "dev handbook."
+  Orient agents and engineers inside the wordloop-platform monorepo by routing
+  tasks to the minimum canonical docs, ./dev CLI output, and source files needed
+  for setup, CLI workflows, submodules, code generation, testing, database
+  design, Bet Design Studio work, architecture, and repository navigation. Use
+  this skill whenever a user is getting started, asks how to do something in the
+  platform, asks where knowledge lives, touches repository-wide workflows, or
+  needs to understand how Wordloop fits together — even if they don't explicitly
+  ask for the dev handbook. Load it before asking platform questions.
 ---
 
 # Dev Handbook
 
-Repository navigation and workflow execution guide for wordloop-platform. This skill routes engineers and agents to the right `./dev` command, canonical docs page, or source file — without duplicating the handbook itself.
+**Wordloop** is an AI-powered meeting intelligence platform: transcription, speaker identification, and conversation insights. Three services — `wordloop-app` (Next.js :4001), `wordloop-core` (Go :4002), `wordloop-ml` (Python :4003) — coordinated through this monorepo.
+
+Use this skill as a context router. Load only what the task requires; stop as soon as you can act.
+
+## Submodule Warning
+
+`services/` and `tools/` directories are Git submodules with their own upstream histories. Check state before editing:
+
+```bash
+git submodule status                        # See all pinned commits
+git -C services/<name> status --short       # Check a specific submodule
+```
+
+Commits inside a submodule must be made upstream first; the monorepo then updates the pointer. Never treat submodule directories as ordinary folders when planning edits or commits.
+
+| Submodule path | Owns |
+|---|---|
+| `services/wordloop-app` | Next.js frontend |
+| `services/wordloop-core` | Go API, domain logic, DB migrations, OpenAPI/AsyncAPI |
+| `services/wordloop-docs` | Documentation site and MCP corpus |
+| `services/wordloop-ml` | Python/FastAPI ML service and pipelines |
+| `tools/skill-factory` | Source skills, evals, and skill-to-doc map |
 
 ## Operating Contract
 
-1. Use canonical docs for durable repo knowledge; do not duplicate the full handbook in the skill. The docs are the source of truth for how things work.
-2. Route the user to the right `./dev` command, docs page, or source file. Be a map, not an encyclopedia.
-3. Verify command names against the CLI before presenting them as facts. Commands change; the skill should not contain a stale command list.
-4. Preserve submodule boundaries and source-of-truth ownership. Each submodule has an upstream — changes flow through the right repo.
+1. Start from the user's task. Load only the smallest docs/source set needed to act.
+2. Prefer Wordloop docs MCP tools when available; fall back to local MDX under `services/wordloop-docs/content/docs/`.
+3. Verify command names, flags, paths, and submodule state in the current repo before presenting them as facts.
+4. Fix durable knowledge in docs or code, not in this skill. If this skill needs a platform fact to answer, that fact probably belongs in the docs too.
+5. To edit a maintained skill: change `tools/skill-factory/skills/<skill>/SKILL.md` first, then run `./dev sync skills` to propagate to `.agents/skills/`.
 
-## Core Pillars
+## Context Budget
 
-1. **CLI-First Workflows** — The `./dev` script is the single entry point for all platform operations: starting services, running tests, generating code, syncing skills, and managing docs. Every workflow should be expressible as a `./dev` command. If a workflow requires manual steps outside the CLI, that's a gap to flag, not a workaround to document in the skill.
+Stop loading once you can name the command, doc slug, source file, and verification step for the task. For most tasks that's one or two pages.
 
-2. **Canonical Docs as Source of Truth** — Durable knowledge about how the platform works lives in the docs site, not in this skill, not in READMEs scattered across directories, and not in tribal knowledge. This skill routes to docs; it does not replace them. When docs and reality disagree, the fix goes into the docs (or the code), not into a skill-local workaround.
+- **Orientation only:** `index` — service map, ports, and purpose in one short page.
+- **Implementation work:** also load the relevant service skill (`core-engineer`, `app-engineer`, `ml-engineer`).
+- **CLI commands:** run `./dev help` or `./dev <verb> --help` rather than relying on docs tables; they are the executable source of truth.
+- **Bet design and review:** for document design, review, or delivery work (problem statements, pitches, TDD, milestones, slices), hand off to the `bet-lead` skill which routes to the specific doc section and template needed.
 
-3. **Submodule Awareness** — The monorepo contains git submodules with their own upstream repositories. Editing a submodule file is not the same as editing a monorepo file — changes need to be committed upstream first, then the submodule pointer updated. Treating submodules as ordinary folders causes merge conflicts and lost work.
+## Route By Task
 
-4. **Verify Before Advising** — CLI commands, file paths, and configuration values change. Before recommending a command, check `./dev <command> --help` or inspect the CLI scripts. Before naming a file path, confirm it exists. Stale advice is worse than no advice because it erodes trust in the handbook.
+| Task | Load first | Add only if needed | Verify with |
+|---|---|---|---|
+| Wordloop's purpose, service map, ports | `index` | `learn/architecture/overview` | repository layout |
+| System architecture, service boundaries | `learn/architecture/overview` | `learn/architecture/system-workflows`, `learn/architecture/data-flow` | current docs and repo |
+| First setup, local startup, prerequisites | `start/quickstart` | `learn/architecture/local-infrastructure`, `reference/configuration` | `./dev doctor`, `./dev start --help` |
+| `./dev` command usage | `reference/cli` | `principles/delivery/devex` | `./dev help`, `./dev <verb> --help` |
+| Maintaining or extending the `./dev` CLI | `reference/cli` | `principles/delivery/platform` | `scripts/cli/*.sh`, `./dev <verb> --help` after changes |
+| Tests, lint, build, CI parity | `guides/run-tests` | `principles/foundations/testing`, service-specific docs | `./dev test --help`, `./dev lint --help`, `./dev build --help` |
+| Codegen, clients, OpenAPI, AsyncAPI | `guides/code-generation` | `reference/api/core`, `reference/events/core-ws`, `reference/events/core-pubsub` | `./dev gen --help`, `specs/`, owning service scripts |
+| Database schema, migrations, query design | `reference/database` | `guides/migrate-schema`, `principles/stack/postgres` | `services/wordloop-core/db/schema.sql`, `services/wordloop-core/cmd/migrate`, `./dev db dry-run`, `./dev db migrate`, service tests |
+| Scaffolding bets, running bet CLI commands | `work` | `reference/cli` | `./dev new --help`, `./dev test bet <slug>` |
+| Designing or reviewing bet documents | Hand off to `bet-lead` skill | — | — |
+| Submodules, contribution flow, repo ownership | `start/first-contribution` | `.gitmodules`, `git submodule status` | submodule git status and upstream remotes |
+| Docs/skill drift or skill maintenance | `guides/keep-docs-and-skills-in-sync` | `decisions/0005-docs-canonical-skills-execution-layer` | `tools/skill-factory/skills-docs-map.json`, `./dev docs health` |
+| Troubleshooting local development | `operations/troubleshooting` | task-specific guide above | `./dev status`, `./dev logs --help` |
 
-## Required Wordloop Context
+## Source-Of-Truth Checks
 
-Read the relevant canonical docs before making non-trivial recommendations or code changes. Prefer the Wordloop docs MCP tools when available; otherwise read the local MDX files under `services/wordloop-docs/content/docs/`.
+Before answering with platform facts:
 
-- `start/quickstart` — Local environment setup, prerequisites, first run.
-- `start/first-contribution` — Contribution workflow, branch conventions, PR process.
-- `reference/cli` — Complete `./dev` command reference.
-- `guides/run-tests` — Test execution across all services.
-- `guides/code-generation` — API client, schema, and reference generation.
-- `work` — Bet Design Studio, workflow authoring, delivery lifecycle.
-
-## Task Routing
-
-- **Local setup/startup** → Read Quickstart and CLI reference. Verify prerequisite versions.
-- **Tests/lint/build** → Read Run Tests guide and CLI reference. Check service-specific test commands.
-- **API/client generation** → Read Code Generation guide. Run `./dev gen --help` to confirm available targets.
-- **Bet/workflow authoring** → Read Work hub. Check templates and active bets.
-- **Skill sync** → Read Keep Docs and Skills in Sync plus CLI reference.
-- **Submodule work** → Identify the submodule's upstream repo. Read submodule conventions in First Contribution guide.
-- **Troubleshooting** → Read operations/troubleshooting docs. Check `./dev` logs and service health.
-
-## Safety Gates
-
-- Do not invent `./dev` targets. Run `./dev <command> --help` or inspect CLI scripts in `scripts/cli/` to confirm commands exist.
-- Do not edit submodules as if they are ordinary folders. Note the upstream ownership and the correct commit flow.
-- Do not run generation manually outside documented `./dev gen` flows. Manual generation creates drift between the contract and generated code.
-- Run `./dev docs health` after documentation or skill-map changes.
-- Do not recommend workarounds for broken workflows without flagging the root cause.
-
-## Hallucination Controls
-
-Before presenting platform guidance as factual:
-
-- Run `./dev <command> --help` to verify commands and flags.
-- Check that file paths exist before recommending them.
-- Check `services/wordloop-docs/content/docs/` for the current docs structure.
-- Check `tools/skill-factory/skills-docs-map.json` for skill-to-docs mappings.
-- Check submodule status with `git submodule status` before advising on submodule changes.
-- Label any recommendation not verified against the current repo state as an inference.
+- Check the doc slug exists via docs MCP or local MDX before citing it.
+- Check CLI claims against current help output or `scripts/cli/`.
+- Check workspace paths before linking or recommending edits.
+- Check submodule boundaries before editing files under `services/` or `tools/`.
+- If docs and code disagree, name which source disagrees and fix the canonical source when scope allows.
 
 ## Output Expectations
 
-- Advice includes specific `./dev` commands, file paths, and docs page slugs — not vague pointers.
-- State which docs or source files informed non-obvious claims.
-- Separate source-of-truth facts from recommendations and inferences.
-- When a workflow has prerequisites (running services, environment variables), name them explicitly.
-- Flag when docs appear stale or when a command doesn't match its documented behavior.
-
-## Antipatterns
-
-Reject these patterns:
-
-- **Stale command lists** — Maintaining a list of `./dev` commands in the skill that goes out of sync with the CLI. The CLI is the source of truth; the skill routes to it.
-- **Shadow handbook** — Duplicating quickstart instructions or workflow steps in the skill body instead of pointing to canonical docs.
-- **Submodule as folder** — Editing files inside a submodule directory without understanding the upstream ownership and commit flow.
-- **Workaround without root cause** — Documenting a manual workaround for a broken workflow without flagging the underlying issue for repair.
-- **Assumed environment** — Giving advice that assumes specific tool versions, env vars, or running services without checking or mentioning the prerequisites.
+- Name the docs or source files that informed non-obvious guidance.
+- Give exact commands only after verification; otherwise label them as inferred.
+- Include prerequisites when a command depends on running services, generated specs, env files, or Docker.
+- Keep responses task-sized. Do not summarize platform architecture unless the task requires it.
