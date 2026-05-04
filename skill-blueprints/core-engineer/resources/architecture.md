@@ -86,10 +86,11 @@ Providers and Entrypoints are both outer-layer adapters. **Neither imports the o
 
 ## 5. Database & Migrations
 
-* **Never Manual:** All schema changes must be migration files in `scripts/migrations/`.
-* **Naming:** Use `YYYYMMDDHHMMSS_description.up.sql` and `.down.sql`.
+* **Declarative Schema:** Wordloop Core uses a declarative target-state schema at `db/schema.sql`. Do not use timestamped `.up.sql` / `.down.sql` migration files.
+* **Workflow:** Edit `db/schema.sql` to describe the final desired schema.
+* **Review & Apply:** Run `./dev db dry-run` to review the `pg-schema-diff` plan and hazards, then apply with `./dev db migrate`.
+* **Never Manual:** Do not manually alter local, staging, or production databases outside of this workflow.
 * **Transactions:** The Service layer defines transaction boundaries; Providers execute the logic.
-* **Idempotency:** Use `IF NOT EXISTS` for safety.
 
 ## 6. Testing Strategy
 Please ensure that tests are updated with every code change. This should cover all layers of the application.
